@@ -72,6 +72,9 @@ export function Editor() {
   const [sheet, setSheet] = useState<SheetState>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
+  const [myHandle, setMyHandle] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [view, setView] = useState<"loading" | "login" | "onboarding" | "edit">("loading");
   const hydrated = useRef(false);
   const lastSavedRef = useRef("");          // последний успешно сохранённый JSON (дедуп PUT)
@@ -120,6 +123,10 @@ export function Editor() {
           return;
         }
         if (!me.ok) throw new Error("auth unavailable");
+        try {
+          const { handle } = await me.json();
+          if (handle) setMyHandle(handle);
+        } catch {}
         await loadOwnerProfile();
       } catch {
         try {
@@ -180,8 +187,34 @@ export function Editor() {
       const { error } = await res.json().catch(() => ({ error: "Не удалось войти" }));
       throw new Error(error || "Не удалось войти");
     }
+    const data = await res.json().catch(() => null);
+    if (data?.handle) setMyHandle(data.handle);
     setView("loading");
     await loadOwnerProfile();
+  };
+
+  // Публичный адрес профиля и действия верхней панели.
+  const publicPath = myHandle ? `/u/${myHandle}` : "/";
+  const shareLink = async () => {
+    if (!myHandle) return;
+    const url = `${window.location.origin}/u/${myHandle}`;
+    try {
+      // Нативный шэр на мобильных, иначе — копирование в буфер.
+      if (navigator.share) {
+        await navigator.share({ url, title: "Моя страница на Ryadom" });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // отмена шэра / нет доступа к буферу — молча
+    }
+  };
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setMyHandle(null);
+    setView("login");
   };
 
   if (view === "loading") {
@@ -220,7 +253,7 @@ export function Editor() {
       <div className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-ink/5">
         <div className="max-w-[460px] mx-auto px-4 h-14 flex items-center justify-between">
           <span className="font-serif text-xl text-ink">Конструктор</span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span
               className={`text-[12px] transition-opacity ${
                 saved ? "opacity-100 text-moss" : "opacity-0"
@@ -228,28 +261,66 @@ export function Editor() {
             >
               Сохранено ✓
             </span>
-            <Link
-              href="/"
-              className="text-[13px] font-medium text-moss"
-              target="_blank"
-            >
-              Открыть ↗
-            </Link>
-            <button
-              onClick={() => {
-                if (confirm("Начать профиль заново? Текущий будет удалён.")) {
-                  try {
-                    localStorage.removeItem(STORAGE_KEY);
-                  } catch {}
-                  hydrated.current = false;
-                  lastSavedRef.current = "";
-                  setView("onboarding");
-                }
-              }}
-              className="text-[13px] text-sub"
-            >
-              Заново
-            </button>
+            {myHandle && (
+              <button
+                onClick={shareLink}
+                className="text-[13px] font-semibold text-white bg-moss px-3.5 py-1.5 rounded-lg whitespace-nowrap"
+              >
+                {copied ? "Скопировано ✓" : "Поделиться"}
+              </button>
+            )}
+            {/* вторичные действия — в меню, чтобы панель не разъезжалась на мобиле */}
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                aria-label="Ещё"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-ink/70 hover:bg-ink/5 text-xl leading-none"
+              >
+                ⋯
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[176px] bg-card border border-ink/10 rounded-xl shadow-lg py-1.5 flex flex-col">
+                    <Link
+                      href={publicPath}
+                      target="_blank"
+                      onClick={() => setMenuOpen(false)}
+                      className="px-4 py-2 text-[14px] text-ink hover:bg-ink/5 text-left"
+                    >
+                      Открыть профиль ↗
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (confirm("Начать профиль заново? Текущий будет удалён.")) {
+                          try {
+                            localStorage.removeItem(STORAGE_KEY);
+                          } catch {}
+                          hydrated.current = false;
+                          lastSavedRef.current = "";
+                          setView("onboarding");
+                        }
+                      }}
+                      className="px-4 py-2 text-[14px] text-ink hover:bg-ink/5 text-left"
+                    >
+                      Начать заново
+                    </button>
+                    {myHandle && (
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          logout();
+                        }}
+                        className="px-4 py-2 text-[14px] text-sub hover:bg-ink/5 text-left"
+                      >
+                        Выйти
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
