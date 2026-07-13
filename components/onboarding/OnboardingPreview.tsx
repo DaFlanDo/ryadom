@@ -47,7 +47,7 @@ export function OnboardingPreview({
   return (
     <div className={`px-5 ${compact ? "pt-2" : "pt-3"}`}>
       <div
-        className={`relative mx-auto max-w-[300px] rounded-[1.6rem] border border-ink/10 bg-card overflow-hidden shadow-[0_18px_40px_-22px_rgba(31,42,28,0.45)] ${
+        className={`relative mx-auto max-w-[300px] rounded-[1.6rem] border border-ink/[0.06] bg-card overflow-hidden shadow-cozy-lg ${
           glow ? "breathe" : ""
         }`}
       >

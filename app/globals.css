@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
-/* ── Тема Ryadom (зелёный базис) ── */
+/* ── Тема Ryadom (зелёный базис + тёплый уют) ── */
 @theme {
   --color-bg:    #EEF2E8;
+  --color-cream: #F4F0E6;
   --color-ink:   #1F2A1C;
   --color-sub:   #6B7A60;
   --color-moss:  #5A6E4B;
@@ -11,15 +12,39 @@
   --color-soft:  #E2EAD7;
   --color-card:  #FFFFFF;
   --color-deep:  #141B12;
+  --color-clay:  #C4886A; /* тёплый акцент для мелких деталей */
 
   --font-sans:  var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
 }
 
 html, body {
-  background: var(--color-bg);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Тёплый уютный фон: кремовое сияние сверху-слева, мягкая зелень снизу-справа */
+.bg-cozy,
+html, body {
+  background-color: #EDF1E7;
+  background-image:
+    radial-gradient(115% 75% at 12% -5%, rgba(244,240,230,0.95) 0%, rgba(244,240,230,0) 55%),
+    radial-gradient(120% 85% at 100% 105%, rgba(215,228,197,0.75) 0%, rgba(215,228,197,0) 55%);
+  background-attachment: fixed;
+}
+
+/* Мягкие «уютные» тени — многослойные, чуть тёплые */
+.shadow-cozy {
+  box-shadow:
+    0 1px 2px rgba(31,42,28,0.04),
+    0 10px 26px -10px rgba(31,42,28,0.14),
+    0 3px 10px -6px rgba(90,110,75,0.12);
+}
+.shadow-cozy-lg {
+  box-shadow:
+    0 2px 4px rgba(31,42,28,0.05),
+    0 22px 48px -14px rgba(31,42,28,0.20),
+    0 6px 16px -8px rgba(90,110,75,0.14);
 }
 
 /* утилиты, перенесённые из прототипа */
@@ -42,6 +67,14 @@ details > summary::-webkit-details-marker { display: none; }
 /* появление строки/блока в превью */
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .rise { animation: rise .32s ease-out; }
+
+/* мягкая смена шага онбординга: подъём + проявление */
+@keyframes stepIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.step-in { animation: stepIn .42s cubic-bezier(.22,.61,.36,1); }
+
+/* нежное всплытие карточки/панели */
+@keyframes floatUp { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.float-up { animation: floatUp .5s cubic-bezier(.22,.61,.36,1); }
 
 /* шиммер «собираю текст» */
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }

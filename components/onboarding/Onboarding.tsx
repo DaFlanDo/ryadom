@@ -15,7 +15,7 @@ import { ImageInput } from "@/components/editor/ImageInput";
 import { OnboardingPreview } from "./OnboardingPreview";
 
 const input =
-  "w-full rounded-xl border border-ink/10 bg-card px-4 py-3 text-[16px] text-ink placeholder:text-sub/50 focus:border-moss focus:ring-2 focus:ring-moss/15 outline-none transition";
+  "w-full rounded-2xl border border-ink/10 bg-card px-4 py-3.5 text-[16px] text-ink placeholder:text-sub/45 shadow-cozy focus:border-moss/50 focus:ring-4 focus:ring-moss/12 outline-none transition";
 
 const STEPS = [
   "intro",
@@ -87,21 +87,31 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   // ── intro: тёплый вход, без превью ──
   if (isIntro) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col">
+      <div className="min-h-screen bg-cozy flex flex-col">
         <div className="max-w-[460px] w-full mx-auto px-6 grow flex flex-col justify-center text-center">
-          <div className="text-5xl mb-6">🌿</div>
-          <h1 className="font-serif text-[2.5rem] leading-[1.05] text-ink mb-4">
-            Соберём твою страницу
-          </h1>
-          <p className="text-sub text-[16px] leading-relaxed">
-            Несколько вопросов — и рядом из них живьём соберётся твоя страница.
-            Будет видно каждый шаг. Поправить потом можно всё.
-          </p>
+          <div className="float-up flex flex-col items-center">
+            {/* мягкий «дышащий» кружок с веточкой вместо голой эмодзи */}
+            <div className="relative mb-8">
+              <div className="absolute inset-0 -m-4 rounded-full bg-soft/70 blur-2xl" />
+              <div className="relative w-24 h-24 rounded-full bg-card shadow-cozy flex items-center justify-center text-[2.75rem]">
+                🌿
+              </div>
+            </div>
+            <h1 className="font-serif text-[2.6rem] leading-[1.03] text-ink mb-4">
+              Соберём твою
+              <br />
+              страницу
+            </h1>
+            <p className="text-sub text-[16px] leading-relaxed max-w-[19rem]">
+              Несколько тёплых вопросов — и страница соберётся из них прямо у тебя
+              на глазах. Поправить потом можно всё.
+            </p>
+          </div>
         </div>
         <div className="max-w-[460px] w-full mx-auto px-6 pb-10">
           <button
             onClick={() => go(1)}
-            className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-lg shadow-moss/25 hover:bg-mossd transition"
+            className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
           >
             Поехали
           </button>
@@ -113,8 +123,8 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   // ── reveal: финальная подача готовой страницы ──
   if (isReveal) {
     return (
-      <div className="min-h-screen bg-bg flex flex-col">
-        <div className="grow flex flex-col justify-center py-6">
+      <div className="min-h-screen bg-cozy flex flex-col">
+        <div className="grow flex flex-col justify-center py-6 float-up">
           <div className="text-center px-6 mb-3">
             <div className="text-4xl mb-3">✨</div>
             <h2 className="font-serif text-[2rem] leading-tight text-ink">
@@ -129,7 +139,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
         <div className="max-w-[460px] w-full mx-auto px-6 pb-10 pt-2">
           <button
             onClick={finish}
-            className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-lg shadow-moss/25 hover:bg-mossd transition"
+            className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
           >
             Хочу подправить →
           </button>
@@ -145,7 +155,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   const last = step === STEPS.length - 2; // "details" — последний вопрос
   return (
     <div
-      className="fixed inset-x-0 top-0 z-10 bg-bg flex flex-col overflow-hidden"
+      className="fixed inset-x-0 top-0 z-10 bg-cozy flex flex-col overflow-hidden"
       style={{
         height: vp ? vp.height : "100dvh",
         transform: vp ? `translateY(${vp.offsetTop}px)` : undefined,
@@ -177,7 +187,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
       {/* вопрос — короткий центрируется, длинный скроллится сверху */}
       <div className="grow shrink min-h-0 overflow-y-auto">
         <div className="min-h-full max-w-[460px] w-full mx-auto px-5 py-4 flex flex-col">
-          <div className="m-auto w-full">
+          <div key={cur} className="step-in mt-2 mb-auto w-full bg-card rounded-[28px] shadow-cozy p-5">
         {cur === "name" && (
           <Q title="Как тебя зовут?" sub="Имя и фамилия — как клиенту привычно тебя видеть. Сразу появится на странице.">
             <input
@@ -271,14 +281,14 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
         <div className="flex gap-3">
           <button
             onClick={() => go(-1)}
-            className="px-5 py-4 rounded-2xl border border-ink/10 text-ink font-medium text-[15px]"
+            className="px-5 py-4 rounded-2xl bg-card/70 border border-ink/10 text-ink font-medium text-[15px] shadow-cozy active:scale-[.98] transition"
           >
             Назад
           </button>
           <button
             onClick={() => go(1)}
             disabled={!canNext}
-            className="grow bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-lg shadow-moss/25 hover:bg-mossd transition disabled:opacity-40"
+            className="grow bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition disabled:opacity-45 disabled:shadow-cozy"
           >
             {last ? "Готово" : "Далее"}
           </button>
@@ -426,10 +436,10 @@ function Chips({
           <button
             key={o}
             onClick={() => onToggle(o)}
-            className={`px-4 py-2.5 rounded-full text-[15px] font-medium border transition ${
+            className={`px-4 py-2.5 rounded-full text-[15px] font-medium border transition active:scale-[.97] ${
               on
-                ? "bg-moss text-white border-moss"
-                : "bg-card text-ink border-ink/10 hover:border-moss/40"
+                ? "bg-moss text-white border-moss shadow-cozy"
+                : "bg-card text-ink border-ink/10 shadow-cozy hover:border-moss/40"
             }`}
           >
             {on && !single ? "✓ " : ""}
