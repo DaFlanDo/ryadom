@@ -11,7 +11,7 @@ function isEmptyProfile(p: unknown): boolean {
   return !p || typeof p !== "object" || Object.keys(p as object).length === 0;
 }
 
-// Публичная страница /u/[handle].
+// Публичная страница ryadom.app/<handle>.
 export async function getProfileByHandle(handle: string): Promise<Profile | null> {
   const { data, error } = await supabaseAdmin()
     .from("psychologists")

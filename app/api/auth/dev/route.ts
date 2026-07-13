@@ -3,9 +3,7 @@
 import { NextResponse } from "next/server";
 import { ensurePsychologist } from "@/lib/profiles";
 import { setSessionCookie } from "@/lib/session";
-
-// handle: латиница/цифры/дефис/подчёркивание, 2–32 симв. (это адрес /u/<handle>)
-const HANDLE_RE = /^[a-z0-9_-]{2,32}$/;
+import { handleError } from "@/lib/handles";
 
 export async function POST(req: Request) {
   let handle: unknown;
@@ -19,11 +17,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "handle required" }, { status: 400 });
   }
   const h = handle.trim().toLowerCase();
-  if (!HANDLE_RE.test(h)) {
-    return NextResponse.json(
-      { error: "handle: 2–32 символа, латиница/цифры/-/_" },
-      { status: 400 }
-    );
+  const err = handleError(h);
+  if (err) {
+    return NextResponse.json({ error: err }, { status: 400 });
   }
 
   try {

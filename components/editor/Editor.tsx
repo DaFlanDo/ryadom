@@ -4,6 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import type { Block, Highlight, Profile, ProfileHeader as Header } from "@/lib/types";
 import { emptyProfile } from "@/lib/profile";
+import { handleError } from "@/lib/handles";
 import { BLOCK_LIBRARY, createBlock } from "@/lib/blockSchema";
 import { BlockRenderer } from "@/components/blocks";
 import { EditProvider } from "@/components/blocks/EditContext";
@@ -194,10 +195,10 @@ export function Editor() {
   };
 
   // Публичный адрес профиля и действия верхней панели.
-  const publicPath = myHandle ? `/u/${myHandle}` : "/";
+  const publicPath = myHandle ? `/${myHandle}` : "/";
   const shareLink = async () => {
     if (!myHandle) return;
-    const url = `${window.location.origin}/u/${myHandle}`;
+    const url = `${window.location.origin}/${myHandle}`;
     try {
       // Нативный шэр на мобильных, иначе — копирование в буфер.
       if (navigator.share) {
@@ -563,8 +564,9 @@ function LoginScreen({ onLogin }: { onLogin: (handle: string) => Promise<void> }
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const h = handle.trim().toLowerCase();
-    if (!/^[a-z0-9_-]{2,32}$/.test(h)) {
-      setError("2–32 символа: латиница, цифры, - или _");
+    const invalid = handleError(h);
+    if (invalid) {
+      setError(invalid);
       return;
     }
     setBusy(true);
@@ -582,10 +584,10 @@ function LoginScreen({ onLogin }: { onLogin: (handle: string) => Promise<void> }
       <form onSubmit={submit} className="w-full max-w-[360px]">
         <h1 className="font-serif text-2xl text-ink">Вход в конструктор</h1>
         <p className="text-[13px] text-sub mt-1 mb-5">
-          Введите адрес профиля — это будет ссылка вида ryadom.app/u/<span className="text-ink">{handle.trim().toLowerCase() || "имя"}</span>
+          Введите адрес профиля — это будет ссылка вида ryadom.app/<span className="text-ink">{handle.trim().toLowerCase() || "имя"}</span>
         </p>
         <div className="flex items-center bg-card border border-ink/15 rounded-xl px-3 focus-within:border-moss/60 transition">
-          <span className="text-sub text-[15px] select-none">/u/</span>
+          <span className="text-sub text-[15px] select-none">ryadom.app/</span>
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}

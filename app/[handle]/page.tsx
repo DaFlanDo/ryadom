@@ -1,4 +1,4 @@
-// Публичная страница психолога: /u/<handle>.
+// Публичная страница психолога: ryadom.app/<handle>.
 // SSR — нужно для красивой ссылки-визитки и OG-превью при шеринге
 // (это канал распространения продукта). Рендерит тот же <Profile>, что и
 // редактор/главная, из данных в БД.
@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Profile } from "@/components/Profile";
 import { getProfileByHandle } from "@/lib/profiles";
+import { isReservedHandle } from "@/lib/handles";
 
 // Профиль может меняться в редакторе — не кэшируем агрессивно.
 export const dynamic = "force-dynamic";
@@ -49,6 +50,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function PublicProfilePage({ params }: Params) {
   const { handle } = await params;
+  // Служебные слова не могут быть профилем (и не должны запрашивать БД).
+  if (isReservedHandle(handle)) notFound();
   const profile = await getProfileByHandle(handle);
   if (!profile) notFound();
   return <Profile profile={profile} />;
