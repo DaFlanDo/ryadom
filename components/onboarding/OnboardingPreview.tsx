@@ -39,8 +39,9 @@ export function OnboardingPreview({
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    // 112 ≈ верх аватара при обложке h-44 (176px − выступ 56px − небольшой запас)
     const top =
-      focus === "reveal" ? 0 : focus === "topics" || focus === "price" ? el.scrollHeight : 88;
+      focus === "reveal" ? 0 : focus === "topics" || focus === "price" ? el.scrollHeight : 112;
     el.scrollTo({ top, behavior: "smooth" });
   }, [focus, answers.topics.length, answers.price]);
 

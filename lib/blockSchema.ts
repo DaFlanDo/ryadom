@@ -5,7 +5,7 @@
 //  поэтому BLOCK_SCHEMAS/HEADER_SCHEMA остаются как справочная модель полей.
 // ════════════════════════════════════════════════════════════
 import type { Block, BlockType } from "./types";
-import { LANDSCAPES } from "./landscapes";
+import { LANDSCAPES, landscape } from "./landscapes";
 
 // нейтральная картинка-заглушка для новых блоков (зелёный пейзаж из пула)
 export const PLACEHOLDER_IMG = LANDSCAPES[0];
@@ -29,25 +29,24 @@ export type Field =
       hint?: string;
     };
 
-// ── Библиотека блоков (меню «добавить») ──
+// ── Библиотека блоков (меню «добавить»; иконка — BlockTypeIcon по type) ──
 export const BLOCK_LIBRARY: {
   type: BlockType;
   label: string;
-  emoji: string;
   hint: string;
 }[] = [
-  { type: "statement", label: "Заявление", emoji: "❝", hint: "Цветная карточка с цитатой" },
-  { type: "text", label: "Текст", emoji: "✍️", hint: "Заголовок и абзац" },
-  { type: "grid", label: "Галерея тем", emoji: "🔲", hint: "Плитка 2×2 с фото" },
-  { type: "video", label: "Видео-визитка", emoji: "▶️", hint: "Видео с обложкой" },
-  { type: "steps", label: "Шаги", emoji: "🪜", hint: "Карусель этапов работы" },
-  { type: "education", label: "Образование", emoji: "🎓", hint: "Таймлайн и дипломы" },
-  { type: "photo", label: "Фото-пост", emoji: "🖼️", hint: "Фото с подписью" },
-  { type: "pricing", label: "Тарифы", emoji: "💳", hint: "Карточки с ценами" },
-  { type: "faq", label: "Вопросы", emoji: "❓", hint: "Раскрывающиеся ответы" },
-  { type: "reviews", label: "Отзывы", emoji: "💬", hint: "Карусель отзывов" },
-  { type: "meta", label: "Цифры", emoji: "📊", hint: "Полоска из трёх метрик" },
-  { type: "cta", label: "Призыв", emoji: "🎯", hint: "Финальный блок с кнопками" },
+  { type: "statement", label: "Заявление", hint: "Цветная карточка с цитатой" },
+  { type: "text", label: "Текст", hint: "Заголовок и абзац" },
+  { type: "grid", label: "Галерея тем", hint: "Плитка 2×2 с фото" },
+  { type: "video", label: "Видео-визитка", hint: "Видео с обложкой" },
+  { type: "steps", label: "Шаги", hint: "Карусель этапов работы" },
+  { type: "education", label: "Образование", hint: "Таймлайн и дипломы" },
+  { type: "photo", label: "Фото-пост", hint: "Фото с подписью" },
+  { type: "pricing", label: "Тарифы", hint: "Карточки с ценами" },
+  { type: "faq", label: "Вопросы", hint: "Раскрывающиеся ответы" },
+  { type: "reviews", label: "Отзывы", hint: "Карусель отзывов" },
+  { type: "meta", label: "Цифры", hint: "Полоска из трёх метрик" },
+  { type: "cta", label: "Призыв", hint: "Финальный блок с кнопками" },
 ];
 
 // ── Схемы полей по типу блока ──
@@ -208,12 +207,12 @@ export function createBlock(type: BlockType): Block {
         type,
         title: "С чем работаю",
         items: [
-          { label: "Тема 1", img: PLACEHOLDER_IMG },
-          { label: "Тема 2", img: PLACEHOLDER_IMG },
+          { label: "Тема 1", img: landscape(1) },
+          { label: "Тема 2", img: landscape(2) },
         ],
       };
     case "video":
-      return { type, title: "Видео-визитка", img: PLACEHOLDER_IMG, caption: "Короткое видео о себе" };
+      return { type, title: "Видео-визитка", img: landscape(4), caption: "Короткое видео о себе" };
     case "steps":
       return {
         type,
@@ -228,7 +227,7 @@ export function createBlock(type: BlockType): Block {
         diplomas: [],
       };
     case "photo":
-      return { type, img: PLACEHOLDER_IMG, caption: "Подпись к фото" };
+      return { type, img: landscape(6), caption: "Подпись к фото" };
     case "pricing":
       return {
         type,

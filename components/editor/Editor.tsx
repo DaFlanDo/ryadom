@@ -7,6 +7,14 @@ import { emptyProfile } from "@/lib/profile";
 import { handleError } from "@/lib/handles";
 import { BLOCK_LIBRARY, createBlock } from "@/lib/blockSchema";
 import { BlockRenderer } from "@/components/blocks";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  BlockTypeIcon,
+  CheckIcon,
+  PencilIcon,
+  TrashIcon,
+} from "@/components/icons";
 import { EditProvider } from "@/components/blocks/EditContext";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 import { Sheet } from "./Sheet";
@@ -349,7 +357,7 @@ export function Editor() {
         />
 
         {/* лента блоков — превью в режиме просмотра, правка через тап-выбор */}
-        <div className="px-4 space-y-3.5">
+        <div className="px-4 space-y-4">
           {blocks.map((block, i) => (
             <BlockSelectWrap
               key={i}
@@ -405,7 +413,9 @@ export function Editor() {
               }}
               className="text-left bg-card border border-ink/10 rounded-2xl p-4 hover:border-moss/40 transition"
             >
-              <div className="text-2xl mb-2">{b.emoji}</div>
+              <div className="w-10 h-10 rounded-xl bg-soft text-moss flex items-center justify-center mb-2.5">
+                <BlockTypeIcon type={b.type} className="w-5 h-5" />
+              </div>
               <div className="text-[15px] font-semibold text-ink">{b.label}</div>
               <div className="text-[12px] text-sub leading-snug mt-0.5">{b.hint}</div>
             </button>
@@ -514,16 +524,16 @@ function BlockActionBar({
 }) {
   return (
     <div className="flex items-center gap-1.5 bg-deep text-white rounded-2xl p-1.5 shadow-lg shadow-deep/30">
-      <BarBtn onClick={onUp} disabled={first} aria="Вверх">↑</BarBtn>
-      <BarBtn onClick={onDown} disabled={last} aria="Вниз">↓</BarBtn>
+      <BarBtn onClick={onUp} disabled={first} aria="Вверх"><ArrowUpIcon className="w-4.5 h-4.5" /></BarBtn>
+      <BarBtn onClick={onDown} disabled={last} aria="Вниз"><ArrowDownIcon className="w-4.5 h-4.5" /></BarBtn>
       <button
         onClick={onEdit}
-        className="grow mx-0.5 bg-moss text-white py-2.5 rounded-xl font-semibold text-[15px] hover:bg-mossd transition"
+        className="grow mx-0.5 bg-moss text-white py-2.5 rounded-xl font-semibold text-[15px] hover:bg-mossd transition flex items-center justify-center gap-2"
       >
-        ✎ Редактировать
+        <PencilIcon className="w-4 h-4" /> Редактировать
       </button>
-      <BarBtn onClick={onDelete} danger aria="Удалить">🗑</BarBtn>
-      <BarBtn onClick={onClose} aria="Готово">✓</BarBtn>
+      <BarBtn onClick={onDelete} danger aria="Удалить"><TrashIcon className="w-4.5 h-4.5" /></BarBtn>
+      <BarBtn onClick={onClose} aria="Готово"><CheckIcon className="w-4.5 h-4.5" /></BarBtn>
     </div>
   );
 }

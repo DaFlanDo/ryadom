@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProfileHeader as Header, Door } from "@/lib/types";
-import { TelegramIcon } from "@/components/icons";
+import { CloseIcon, TelegramIcon } from "@/components/icons";
 import { useEditing } from "@/components/blocks/EditContext";
 import { EditableText } from "@/components/blocks/inline";
 
@@ -21,20 +21,21 @@ export function ProfileHeader({
 
   return (
     <header className="relative">
-      <div className="h-36 relative overflow-hidden">
+      <div className="h-44 relative overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={header.cover} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-moss/55 mix-blend-multiply" />
+        {/* лёгкий тёплый тон вместо плотного мультиплая — фото остаётся фотографией */}
+        <div className="absolute inset-0 bg-moss/15 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent" />
       </div>
 
-      <div className="px-5 -mt-12 relative">
+      <div className="px-5 -mt-14 relative">
         <div className="flex items-end justify-between mb-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={header.avatar}
             alt={header.name}
-            className="w-24 h-24 rounded-full object-cover ring-4 ring-bg shadow-lg"
+            className="w-28 h-28 rounded-full object-cover ring-4 ring-bg shadow-cozy-lg"
           />
           <span className="mb-1 flex items-center gap-1.5 text-[12px] text-sub bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-ink/5">
             <span className="w-2 h-2 rounded-full bg-[#6FBF4F]" />
@@ -56,7 +57,7 @@ export function ProfileHeader({
         />
         <EditableText
           as="p"
-          className="text-sub text-[14px] font-medium mb-3"
+          className="text-clayd text-[14px] font-medium mb-3"
           value={header.role}
           onChange={(v) => set({ role: v })}
           placeholder="Специализация"
@@ -87,10 +88,10 @@ export function ProfileHeader({
                 <button
                   type="button"
                   onClick={() => set({ meta: header.meta.filter((_, j) => j !== i) })}
-                  className="w-5 h-5 rounded-full text-red-400 hover:bg-red-50 text-[12px] flex items-center justify-center"
+                  className="w-5 h-5 rounded-full text-red-400 hover:bg-red-50 flex items-center justify-center"
                   aria-label="Убрать пункт"
                 >
-                  ✕
+                  <CloseIcon className="w-3 h-3" />
                 </button>
               </span>
             ))}

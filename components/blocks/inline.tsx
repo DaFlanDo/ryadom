@@ -3,6 +3,13 @@
 import { createElement, useEffect, useRef, useState } from "react";
 import { useEditing } from "./EditContext";
 import { uploadImage } from "@/lib/uploadImage";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CameraIcon,
+  CloseIcon,
+  StarIcon,
+} from "@/components/icons";
 
 // ════════════════════════════════════════════════════════════
 //  Инлайн-примитивы правки.
@@ -79,7 +86,7 @@ export function EditableText({
 }
 
 // ── Фото: тап-замена прямо на изображении ──
-// Рендерит <img> (+ маленький чип 📷 в углу в режиме правки).
+// Рендерит <img> (+ маленький чип «фото» в углу в режиме правки).
 // ВАЖНО: непосредственный родитель должен быть relative.
 export function EditableImage({
   value,
@@ -119,9 +126,9 @@ export function EditableImage({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="absolute bottom-2 right-2 z-20 bg-deep/75 text-white text-[12px] px-2.5 py-1 rounded-full backdrop-blur hover:bg-deep transition"
+            className="absolute bottom-2 right-2 z-20 bg-deep/75 text-white text-[12px] px-2.5 py-1 rounded-full backdrop-blur hover:bg-deep transition flex items-center gap-1.5"
           >
-            {busy ? "…" : "📷 фото"}
+            {busy ? "…" : <><CameraIcon className="w-3.5 h-3.5" /> фото</>}
           </button>
           <input
             ref={inputRef}
@@ -136,7 +143,7 @@ export function EditableImage({
   );
 }
 
-// ── Контролы элемента списка (↑ ↓ ✕) ──
+// ── Контролы элемента списка (вверх/вниз/убрать) ──
 // Плавающий кластер в углу пункта. ВАЖНО: родитель — relative.
 export function ItemControls({
   onRemove,
@@ -159,16 +166,16 @@ export function ItemControls({
     <div className="absolute -top-2.5 right-1.5 z-30 flex items-center gap-0.5 bg-deep text-white rounded-full px-1 py-0.5 shadow-lg opacity-0 pointer-events-none transition-opacity duration-150 group-focus-within/item:opacity-100 group-focus-within/item:pointer-events-auto">
       {onUp && (
         <Mini onClick={onUp} disabled={first}>
-          ↑
+          <ArrowUpIcon className="w-3.5 h-3.5" />
         </Mini>
       )}
       {onDown && (
         <Mini onClick={onDown} disabled={last}>
-          ↓
+          <ArrowDownIcon className="w-3.5 h-3.5" />
         </Mini>
       )}
       <Mini onClick={onRemove} danger>
-        ✕
+        <CloseIcon className="w-3.5 h-3.5" />
       </Mini>
     </div>
   );
@@ -250,7 +257,13 @@ export function StarRating({
 }) {
   const editing = useEditing();
   if (!editing) {
-    return <p className={className}>{"★".repeat(value)}</p>;
+    return (
+      <div className={`flex gap-0.5 ${className}`}>
+        {Array.from({ length: value }, (_, i) => (
+          <StarIcon key={i} className="w-3.5 h-3.5" />
+        ))}
+      </div>
+    );
   }
   return (
     <div className="flex gap-1 mb-1">
@@ -259,12 +272,10 @@ export function StarRating({
           key={n}
           type="button"
           onClick={() => onChange?.(n)}
-          className={`text-[15px] leading-none ${
-            n <= value ? "text-moss" : "text-moss/20"
-          }`}
+          className={n <= value ? "text-clay" : "text-ink/15"}
           aria-label={`${n} звёзд`}
         >
-          ★
+          <StarIcon className="w-4 h-4" />
         </button>
       ))}
     </div>

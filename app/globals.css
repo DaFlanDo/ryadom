@@ -13,6 +13,7 @@
   --color-card:  #FFFFFF;
   --color-deep:  #141B12;
   --color-clay:  #C4886A; /* тёплый акцент для мелких деталей */
+  --color-clayd: #A9684A; /* тёмная глина — тот же акцент для текста (контрастнее) */
 
   --font-sans:  var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;

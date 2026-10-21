@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { Highlight } from "@/lib/types";
 import { uploadImage } from "@/lib/uploadImage";
+import { CloseIcon, PencilIcon, TrashIcon } from "@/components/icons";
 
 // Полноэкранный просмотрщик актуальных с правкой прямо внутри истории:
 // листаешь слайды, пишешь подпись, добавляешь фото, удаляешь — как в соцсети.
@@ -124,11 +125,11 @@ export function EditableStoryViewer({
             />
           ) : (
             <button onClick={() => setTitleEditing(true)} className="text-[15px] font-semibold drop-shadow flex items-center gap-1.5">
-              {h.title} <span className="text-white/60 text-[12px]">✎</span>
+              {h.title} <PencilIcon className="w-3 h-3 text-white/60" />
             </button>
           )}
-          <button onClick={onClose} className="text-white/90 text-2xl leading-none px-2" aria-label="Закрыть">
-            ✕
+          <button onClick={onClose} className="text-white/90 px-2 py-1" aria-label="Закрыть">
+            <CloseIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -184,9 +185,9 @@ export function EditableStoryViewer({
                 </button>
                 <button
                   onClick={deleteSlide}
-                  className="px-4 bg-white/15 text-white rounded-xl font-medium text-[14px] border border-white/20"
+                  className="px-4 bg-white/15 text-white rounded-xl font-medium text-[14px] border border-white/20 flex items-center gap-1.5"
                 >
-                  🗑 Слайд
+                  <TrashIcon className="w-4 h-4" /> Слайд
                 </button>
               </div>
               <button onClick={deleteHighlight} className="w-full text-center text-white/55 text-[13px] py-1">

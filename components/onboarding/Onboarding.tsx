@@ -12,6 +12,7 @@ import {
   type OnboardingAnswers,
 } from "@/lib/onboarding";
 import { ImageInput } from "@/components/editor/ImageInput";
+import { LeafIcon, SparkleIcon } from "@/components/icons";
 import { OnboardingPreview } from "./OnboardingPreview";
 
 const input =
@@ -84,17 +85,27 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   // клавиатура открыта: фокус в поле, либо видимая область заметно меньше экрана
   const kbOpen = typing || (vp ? vp.height < window.innerHeight * 0.8 : false);
 
-  // ── intro: тёплый вход, без превью ──
+  // ── intro: тёплый вход с фото-героем сверху ──
   if (isIntro) {
     return (
       <div className="min-h-screen bg-cozy flex flex-col">
-        <div className="max-w-[460px] w-full mx-auto px-6 grow flex flex-col justify-center text-center">
+        {/* уютное фото сверху — тёплые листья на солнце (фото: Hana Kirana, CC BY 2.0) */}
+        <div className="relative h-[42vh] min-h-[260px] w-full overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center scale-105"
+            style={{ backgroundImage: "url(/onboarding/intro.jpg)" }}
+          />
+          {/* мягкое затухание фото в фон снизу + лёгкий тёплый тон */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/[0.04] via-transparent to-[#EDF1E7]" />
+        </div>
+
+        <div className="relative grow flex flex-col items-center text-center px-6 -mt-14">
           <div className="float-up flex flex-col items-center">
-            {/* мягкий «дышащий» кружок с веточкой вместо голой эмодзи */}
-            <div className="relative mb-8">
-              <div className="absolute inset-0 -m-4 rounded-full bg-soft/70 blur-2xl" />
-              <div className="relative w-24 h-24 rounded-full bg-card shadow-cozy flex items-center justify-center text-[2.75rem]">
-                🌿
+            {/* кружок с веточкой на стыке фото и фона */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 -m-3 rounded-full bg-soft/60 blur-2xl" />
+              <div className="relative w-20 h-20 rounded-full bg-card shadow-cozy-lg flex items-center justify-center">
+                <LeafIcon className="w-9 h-9 text-moss" />
               </div>
             </div>
             <h1 className="font-serif text-[2.6rem] leading-[1.03] text-ink mb-4">
@@ -108,7 +119,8 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
             </p>
           </div>
         </div>
-        <div className="max-w-[460px] w-full mx-auto px-6 pb-10">
+
+        <div className="max-w-[460px] w-full mx-auto px-6 pb-10 pt-4">
           <button
             onClick={() => go(1)}
             className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
@@ -126,7 +138,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
       <div className="min-h-screen bg-cozy flex flex-col">
         <div className="grow flex flex-col justify-center py-6 float-up">
           <div className="text-center px-6 mb-3">
-            <div className="text-4xl mb-3">✨</div>
+            <SparkleIcon className="w-9 h-9 text-clay mx-auto mb-3" />
             <h2 className="font-serif text-[2rem] leading-tight text-ink">
               Готово — это твоя страница
             </h2>
@@ -209,8 +221,8 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
             <div className="flex flex-col items-center gap-3 py-1">
               <ImageInput value={a.avatar} onChange={(v) => set({ avatar: v })} round size={104} />
               {a.avatar && (
-                <p className="rise text-[14px] text-moss font-medium text-center">
-                  Вот теперь это твоя страница ✨
+                <p className="rise text-[14px] text-moss font-medium text-center flex items-center justify-center gap-1.5">
+                  <SparkleIcon className="w-4 h-4 text-clay" /> Вот теперь это твоя страница
                 </p>
               )}
             </div>
@@ -356,9 +368,9 @@ function AboutStep({
         ) : !a.bio ? (
           <button
             onClick={assemble}
-            className="w-full bg-deep text-white py-3.5 rounded-xl font-semibold text-[15px] hover:opacity-90 transition"
+            className="w-full bg-deep text-white py-3.5 rounded-xl font-semibold text-[15px] hover:opacity-90 transition flex items-center justify-center gap-2"
           >
-            Собрать текст ✨
+            <SparkleIcon className="w-4 h-4" /> Собрать текст
           </button>
         ) : (
           <div className="rise space-y-2">

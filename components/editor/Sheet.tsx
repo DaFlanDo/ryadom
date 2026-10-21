@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CloseIcon } from "@/components/icons";
 
 // Мобильный bottom-sheet: выезжает снизу, закрывается тапом по фону.
 // Привязан к visualViewport — при открытой клавиатуре iOS панель остаётся
@@ -72,10 +73,10 @@ export function Sheet({
             <h2 className="font-serif text-2xl text-ink">{title}</h2>
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-full bg-card border border-ink/10 text-sub flex items-center justify-center text-lg"
+              className="w-9 h-9 rounded-full bg-card border border-ink/10 text-sub flex items-center justify-center"
               aria-label="Закрыть"
             >
-              ✕
+              <CloseIcon className="w-4 h-4" />
             </button>
           </div>
         </div>

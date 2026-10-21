@@ -9,6 +9,12 @@
 import { useEffect, useRef } from "react";
 import type { Field } from "@/lib/blockSchema";
 import { ImageInput } from "./ImageInput";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CloseIcon,
+  StarIcon,
+} from "@/components/icons";
 
 export const inputCls =
   "w-full rounded-xl border border-ink/10 bg-card px-3.5 py-2.5 text-[16px] text-ink placeholder:text-sub/50 focus:border-moss focus:ring-2 focus:ring-moss/15 outline-none transition";
@@ -157,9 +163,9 @@ export function FieldEditor({
                 type="button"
                 onClick={() => onChange(s)}
                 aria-label={`${s} звёзд`}
-                className={`text-2xl leading-none ${s <= n ? "text-moss" : "text-moss/20"}`}
+                className={s <= n ? "text-clay" : "text-ink/15"}
               >
-                ★
+                <StarIcon className="w-6 h-6" />
               </button>
             ))}
           </div>
@@ -218,7 +224,7 @@ export function FieldEditor({
                   className="shrink-0 w-9 h-9 mt-0.5 rounded-lg text-sub hover:text-red-500 hover:bg-red-50 transition flex items-center justify-center"
                   aria-label="Удалить"
                 >
-                  ✕
+                  <CloseIcon className="w-4 h-4" />
                 </button>
               </div>
             ))}
@@ -254,9 +260,9 @@ export function FieldEditor({
                     {String(item[field.itemTitleKey] || `${i + 1}`).slice(0, 28) || `${i + 1}`}
                   </span>
                   <div className="flex items-center gap-1">
-                    <MiniBtn onClick={() => moveItem(i, -1)} disabled={i === 0}>↑</MiniBtn>
-                    <MiniBtn onClick={() => moveItem(i, 1)} disabled={i === items.length - 1}>↓</MiniBtn>
-                    <MiniBtn onClick={() => removeItem(i)} danger>✕</MiniBtn>
+                    <MiniBtn onClick={() => moveItem(i, -1)} disabled={i === 0}><ArrowUpIcon className="w-3.5 h-3.5" /></MiniBtn>
+                    <MiniBtn onClick={() => moveItem(i, 1)} disabled={i === items.length - 1}><ArrowDownIcon className="w-3.5 h-3.5" /></MiniBtn>
+                    <MiniBtn onClick={() => removeItem(i)} danger><CloseIcon className="w-3.5 h-3.5" /></MiniBtn>
                   </div>
                 </div>
                 {field.itemFields.map((f) => (

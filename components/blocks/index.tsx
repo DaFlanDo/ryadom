@@ -22,8 +22,9 @@ import type {
   CtaBlock,
   Door,
 } from "@/lib/types";
-import { PlayIcon } from "@/components/icons";
+import { PlayIcon, PlusIcon, StarIcon } from "@/components/icons";
 import { PLACEHOLDER_IMG } from "@/lib/blockSchema";
+import { landscape } from "@/lib/landscapes";
 import { useEditing } from "./EditContext";
 import {
   EditableText,
@@ -46,7 +47,8 @@ function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   return next;
 }
 
-// заголовок секции (необязательный) — правится инлайн, в view скрыт при пустом
+// заголовок секции (необязательный) — правится инлайн, в view скрыт при пустом.
+// Крупный serif + тёплая чёрточка: страница читается «главами», а не простынёй.
 function SectionTitle({
   value,
   onChange,
@@ -54,14 +56,19 @@ function SectionTitle({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const editing = useEditing();
+  if (!editing && !value) return null;
   return (
-    <EditableText
-      as="h3"
-      className="text-[12px] font-bold text-sage tracking-widest uppercase mb-3 px-1"
-      value={value}
-      onChange={onChange}
-      placeholder="Заголовок"
-    />
+    <div className="flex items-center gap-2.5 pt-2 mb-3 px-1">
+      <span className="w-4 h-[3px] rounded-full bg-clay shrink-0" aria-hidden />
+      <EditableText
+        as="h3"
+        className="font-serif text-[1.4rem] leading-tight text-ink"
+        value={value}
+        onChange={onChange}
+        placeholder="Заголовок"
+      />
+    </div>
   );
 }
 
@@ -133,22 +140,16 @@ function ColorSwatches({
   );
 }
 
-// [2] Текстовый блок
+// [2] Текстовый блок — без карточки, прямо на фоне: даёт ленте дышать
 function Text({ block, onChange }: BP<TextBlock>) {
   const set = (p: Partial<TextBlock>) => onChange?.({ ...block, ...p });
   return (
-    <article className="bg-card rounded-2xl p-5 border border-ink/5 shadow-sm">
-      <EditableText
-        as="h3"
-        className="text-[12px] font-bold text-sage tracking-widest uppercase mb-3"
-        value={block.title ?? ""}
-        onChange={(v) => set({ title: v })}
-        placeholder="Заголовок (необязательно)"
-      />
+    <article>
+      <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
       <EditableText
         as="p"
         multiline
-        className="text-ink/80 text-[15px] leading-relaxed"
+        className="block text-ink/80 text-[15px] leading-relaxed px-1"
         value={block.body}
         onChange={(v) => set({ body: v })}
         placeholder="Текст блока"
@@ -195,7 +196,9 @@ function Grid({ block, onChange }: BP<GridBlock>) {
       </div>
       <AddItem
         label="Добавить тему"
-        onClick={() => set({ items: [...block.items, { label: "Тема", img: PLACEHOLDER_IMG }] })}
+        onClick={() =>
+          set({ items: [...block.items, { label: "Тема", img: landscape(block.items.length) }] })
+        }
         className="mt-3"
       />
     </section>
@@ -249,7 +252,7 @@ function Steps({ block, onChange }: BP<StepsBlock>) {
           >
             <EditableText
               as="div"
-              className="text-moss font-serif text-3xl mb-2"
+              className="text-clayd font-serif text-3xl mb-2"
               value={it.n}
               onChange={(v) => setItem(i, { n: v })}
               placeholder="01"
@@ -427,14 +430,14 @@ function Pricing({ block, onChange }: BP<PricingBlock>) {
           return (
             <article
               key={i}
-              className={`group/item relative rounded-2xl p-5 shadow-sm ${
+              className={`group/item relative rounded-2xl p-5 shadow-cozy ${
                 featured ? "bg-moss text-white" : "bg-card text-ink border border-ink/5"
               }`}
             >
               {featured && (
                 <EditableText
                   as="span"
-                  className="absolute top-3 right-3 z-10 text-[10px] bg-white/20 px-2 py-0.5 rounded-full"
+                  className="absolute top-3 right-3 z-10 text-[10px] font-semibold bg-clay text-white px-2 py-0.5 rounded-full"
                   value={it.badge ?? ""}
                   onChange={(v) => setItem(i, { badge: v })}
                   placeholder="бейдж"
@@ -465,11 +468,12 @@ function Pricing({ block, onChange }: BP<PricingBlock>) {
                 <button
                   type="button"
                   onClick={() => setItem(i, { featured: !featured })}
-                  className={`absolute bottom-2 right-2 z-10 text-[11px] px-2 py-0.5 rounded-full ${
-                    featured ? "bg-white/20 text-white" : "bg-moss/10 text-moss"
+                  className={`absolute bottom-2 right-2 z-10 p-1.5 rounded-full ${
+                    featured ? "bg-white/20 text-white" : "bg-clay/10 text-clay"
                   }`}
+                  aria-label={featured ? "Снять выделение" : "Выделить тариф"}
                 >
-                  {featured ? "★" : "☆"}
+                  <StarIcon className="w-3.5 h-3.5" />
                 </button>
               </EditOnly>
               <ItemControls
@@ -542,8 +546,8 @@ function Faq({ block, onChange }: BP<FaqBlock>) {
             >
               <summary className="flex justify-between items-center p-4 cursor-pointer text-[15px] font-medium">
                 {it.q}
-                <span className="text-sage group-open:rotate-45 transition-transform text-lg">
-                  +
+                <span className="text-sage group-open:rotate-45 transition-transform shrink-0 ml-3">
+                  <PlusIcon className="w-4 h-4" />
                 </span>
               </summary>
               <p className="px-4 pb-4 text-sub text-[14px] leading-relaxed">{it.a}</p>
@@ -578,7 +582,7 @@ function Reviews({ block, onChange }: BP<ReviewsBlock>) {
             <StarRating
               value={it.stars}
               onChange={(v) => setItem(i, { stars: v })}
-              className="text-[11px] text-moss tracking-wider mb-3"
+              className="text-clay mb-3"
             />
             <EditableText
               as="p"
@@ -626,10 +630,10 @@ function Meta({ block, onChange }: BP<MetaBlock>) {
   const setItem = (i: number, p: Partial<MetaBlock["items"][number]>) =>
     set({ items: block.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
   return (
-    <article className="bg-card rounded-2xl p-5 border border-ink/5 shadow-sm">
+    <article className="bg-soft rounded-2xl p-5">
       <div className="grid grid-cols-3 gap-2 text-center">
         {block.items.map((it, i) => (
-          <div key={i} className={`group/item relative ${i === 1 ? "border-x border-ink/5" : ""}`}>
+          <div key={i} className={`group/item relative ${i === 1 ? "border-x border-ink/10" : ""}`}>
             <EditableText
               as="p"
               className="font-serif text-2xl text-moss"
@@ -671,7 +675,7 @@ function Cta({
 }) {
   const set = (p: Partial<CtaBlock>) => onChange?.({ ...block, ...p });
   return (
-    <article className="bg-deep text-white rounded-2xl p-6 text-center shadow-sm">
+    <article className="bg-deep text-white rounded-2xl p-6 text-center shadow-cozy-lg">
       <EditableText
         as="p"
         className="font-serif text-[1.6rem] leading-snug mb-2"

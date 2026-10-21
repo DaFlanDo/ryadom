@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { uploadImage } from "@/lib/uploadImage";
+import { CameraIcon } from "@/components/icons";
 
 // Загрузка картинки файлом из галереи/камеры.
 export function ImageInput({
@@ -51,7 +52,7 @@ export function ImageInput({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={value} alt="" className="w-full h-full object-cover" />
         ) : (
-          <span className="text-xl">📷</span>
+          <CameraIcon className="w-6 h-6 text-sub/60" />
         )}
         {busy && (
           <span className="absolute inset-0 bg-white/70 flex items-center justify-center text-[11px] text-moss">

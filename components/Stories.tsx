@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Highlight } from "@/lib/types";
+import { CloseIcon } from "@/components/icons";
 
 // Кружочки актуальных + полноэкранный сторис-просмотрщик.
 // Листает слайды внутри актуального, затем переходит к следующему.
@@ -100,8 +101,8 @@ export function Stories({ highlights }: { highlights: Highlight[] }) {
             {/* шапка */}
             <div className="absolute top-7 left-4 right-4 flex items-center justify-between z-20 text-white">
               <span className="text-[14px] font-semibold drop-shadow">{h.title}</span>
-              <button onClick={close} className="text-white/90 text-2xl leading-none px-2" aria-label="Закрыть">
-                ✕
+              <button onClick={close} className="text-white/90 px-2 py-1" aria-label="Закрыть">
+                <CloseIcon className="w-5 h-5" />
               </button>
             </div>
 
