@@ -25,26 +25,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     return { title: "Профиль не найден — Ryadom" };
   }
 
-  const { name, role, bio, avatar, cover } = profile.header;
+  const { name, role, bio, note } = profile.header;
   const title = `${name} — ${role}`;
-  const description = bio?.slice(0, 200);
-  const image = cover || avatar;
+  const description = (note || bio)?.slice(0, 200);
 
+  // Картинку превью рисует opengraph-image.tsx рядом — Next подставит её сам
   return {
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      type: "profile",
-      images: image ? [{ url: image }] : undefined,
-    },
-    twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title,
-      description,
-      images: image ? [image] : undefined,
-    },
+    openGraph: { title, description, type: "profile" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 

@@ -7,12 +7,7 @@ import { EditableImage, EditableText } from "@/components/blocks/inline";
 import { DoorLink } from "@/components/DoorLink";
 import { HEADER_PLACE, StickerBadge } from "@/components/StickerBadge";
 import { Fix, Note } from "@/components/paper";
-
-// «привет, я Катя» — если человек не написал своё, собираем из имени
-export function defaultHello(name: string): string {
-  const first = name.trim().split(/\s+/)[0];
-  return first ? `привет, я ${first}` : "";
-}
+import { defaultHello } from "@/lib/hello";
 
 // Шапка в духе «Записки»: полароид на скотче, приветствие от руки,
 // факты через каракули, записка «пара слов от меня» и кнопки.

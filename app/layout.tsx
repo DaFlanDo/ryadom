@@ -25,6 +25,8 @@ const ptSerif = PT_Serif({ subsets: ["latin", "cyrillic"], weight: ["400", "700"
 const fontVars = [inter, cormorant, caveat, badScript, marck, neucha, ptSerif].map((f) => f.variable).join(" ");
 
 export const metadata: Metadata = {
+  // абсолютные ссылки на картинки превью; на Vercel без переменной Next возьмёт адрес проекта сам
+  ...(process.env.NEXT_PUBLIC_SITE_URL ? { metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL) } : {}),
   title: "Ryadom — страница для психолога",
   description:
     "Конструктор тёплой личной страницы для психологов: о себе, подход, услуги и кнопка «записаться».",
