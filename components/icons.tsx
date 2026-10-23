@@ -141,6 +141,29 @@ export function SparkleIcon({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
+export function PaletteIcon({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <Stroke className={className}>
+      <path d="M12 22a10 10 0 1 1 10-10c0 2.5-2 3.5-4 3.5h-2.2a1.8 1.8 0 0 0-1.3 3.05c.42.44.5 1.05.3 1.6A1.6 1.6 0 0 1 12 22Z" />
+      <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+      <circle cx="11" cy="6.5" r="1" fill="currentColor" />
+      <circle cx="16" cy="8" r="1" fill="currentColor" />
+    </Stroke>
+  );
+}
+
+// стикер с загнутым уголком
+export function StickerIcon({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <Stroke className={className}>
+      <path d="M15.5 3H8a5 5 0 0 0-5 5v8a5 5 0 0 0 5 5h5l8-8V8.5" />
+      <path d="M21 13h-4a4 4 0 0 0-4 4v4" />
+      <path d="M8.5 10h.01M15 10h.01" />
+      <path d="M8.5 14.5c1.6 1.4 4.4 1.4 6 0" />
+    </Stroke>
+  );
+}
+
 export function LeafIcon({ className = "w-4 h-4" }: IconProps) {
   return (
     <Stroke className={className}>

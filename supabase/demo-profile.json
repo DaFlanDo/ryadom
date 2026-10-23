@@ -1,4 +1,5 @@
 {
+  "theme": "moss",
   "doors": {
     "book": {
       "url": "#",
@@ -14,7 +15,11 @@
       "text": "«Терапия должна делать тебя свободнее, а не привязывать к терапевту.»",
       "type": "statement",
       "color": "moss",
-      "caption": "— мой главный принцип в работе"
+      "caption": "— мой главный принцип в работе",
+      "sticker": {
+        "id": "hot-beverage",
+        "corner": "tr"
+      }
     },
     {
       "body": "Восемь лет работаю с людьми, которые внешне «справляются», а внутри держатся на честном слове. Не верю в советы «просто успокойся» — мы разбираем, как устроена именно твоя тревога, и что с ней делать.",
@@ -41,7 +46,11 @@
           "label": "Отношения"
         }
       ],
-      "title": "С чем работаю"
+      "title": "С чем работаю",
+      "sticker": {
+        "id": "mending-heart",
+        "corner": "tr"
+      }
     },
     {
       "img": "https://images.unsplash.com/photo-1521146764736-56c929d59c83?w=700&q=60",
@@ -68,7 +77,11 @@
           "title": "Опора"
         }
       ],
-      "title": "Как проходит работа"
+      "title": "Как проходит работа",
+      "sticker": {
+        "id": "seedling",
+        "corner": "br"
+      }
     },
     {
       "type": "education",
@@ -91,7 +104,11 @@
         "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=300&q=60",
         "https://images.unsplash.com/photo-1517842645767-c639042777db?w=300&q=60",
         "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=300&q=60"
-      ]
+      ],
+      "sticker": {
+        "id": "books",
+        "corner": "br"
+      }
     },
     {
       "img": "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=700&auto=format&fit=crop&q=60",
@@ -114,7 +131,11 @@
           "featured": true
         }
       ],
-      "title": "Тарифы"
+      "title": "Тарифы",
+      "sticker": {
+        "id": "teacup-without-handle",
+        "corner": "tr"
+      }
     },
     {
       "type": "faq",
@@ -132,7 +153,11 @@
           "q": "А если станет некомфортно?"
         }
       ],
-      "title": "Частые вопросы"
+      "title": "Частые вопросы",
+      "sticker": {
+        "id": "thought-balloon",
+        "corner": "tr"
+      }
     },
     {
       "type": "reviews",
@@ -148,7 +173,11 @@
           "author": "Мария, 31"
         }
       ],
-      "title": "Отзывы"
+      "title": "Отзывы",
+      "sticker": {
+        "id": "smiling-face-with-hearts",
+        "corner": "tr"
+      }
     },
     {
       "type": "meta",
@@ -170,7 +199,11 @@
     {
       "text": "Можно записаться на сессию. А можно сначала просто написать — это ни к чему не обязывает.",
       "type": "cta",
-      "title": "С чего начать — решаешь ты"
+      "title": "С чего начать — решаешь ты",
+      "sticker": {
+        "id": "sparkles",
+        "corner": "tr"
+      }
     }
   ],
   "header": {
@@ -184,7 +217,11 @@
     "role": "Психолог · КПТ, ACT",
     "cover": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&auto=format&fit=crop&q=60",
     "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=70",
-    "status": "веду приём"
+    "status": "веду приём",
+    "sticker": {
+      "id": "sun-behind-cloud",
+      "corner": "br"
+    }
   },
   "highlights": [
     {

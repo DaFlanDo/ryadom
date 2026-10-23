@@ -33,6 +33,22 @@ describe("схема профиля", () => {
     expect(parseProfile(profile).ok).toBe(true);
   });
 
+  it("стикеры и тема: только из своего списка", () => {
+    const ok = { ...starter(), theme: "dusk", header: { ...starter().header, sticker: { id: "herb", corner: "br" } } };
+    expect(parseProfile(ok).ok).toBe(true);
+    const badId = { ...ok, header: { ...ok.header, sticker: { id: "../../etc/passwd", corner: "br" } } };
+    expect(parseProfile(badId).ok).toBe(false);
+    const badCorner = { ...ok, header: { ...ok.header, sticker: { id: "herb", corner: "middle" } } };
+    expect(parseProfile(badCorner).ok).toBe(false);
+    expect(parseProfile({ ...ok, theme: "neon" }).ok).toBe(false);
+  });
+
+  it("у каждого стикера из списка есть файл", async () => {
+    const { existsSync } = await import("node:fs");
+    const { STICKER_IDS } = await import("@/lib/stickers");
+    for (const id of STICKER_IDS) expect(existsSync(`public/stickers/${id}.webp`), id).toBe(true);
+  });
+
   it("javascript: в кнопке записи отклоняется", () => {
     const profile = starter();
     profile.doors.book.url = "javascript:alert(document.cookie)";

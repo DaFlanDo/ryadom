@@ -5,6 +5,7 @@ import { CloseIcon, TelegramIcon } from "@/components/icons";
 import { useEditing } from "@/components/blocks/EditContext";
 import { EditableText } from "@/components/blocks/inline";
 import { DoorLink } from "@/components/DoorLink";
+import { HEADER_PLACE, StickerBadge } from "@/components/StickerBadge";
 
 export function ProfileHeader({
   header,
@@ -135,6 +136,7 @@ export function ProfileHeader({
           </DoorLink>
         </div>
       </div>
+      <StickerBadge sticker={header.sticker} place={HEADER_PLACE} size={68} />
     </header>
   );
 }

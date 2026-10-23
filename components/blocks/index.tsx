@@ -27,6 +27,8 @@ import { PLACEHOLDER_IMG } from "@/lib/blockSchema";
 import { landscape } from "@/lib/landscapes";
 import { useEditing } from "./EditContext";
 import { DoorLink } from "@/components/DoorLink";
+import { StickerBadge } from "@/components/StickerBadge";
+import { TitleMark, TitleUnderline } from "@/components/doodles";
 import { linkHref } from "@/lib/urls";
 import {
   EditableText,
@@ -61,15 +63,18 @@ function SectionTitle({
   const editing = useEditing();
   if (!editing && !value) return null;
   return (
-    <div className="flex items-center gap-2.5 pt-2 mb-3 px-1">
-      <span className="w-4 h-[3px] rounded-full bg-clay shrink-0" aria-hidden />
-      <EditableText
-        as="h3"
-        className="font-serif text-[1.4rem] leading-tight text-ink"
-        value={value}
-        onChange={onChange}
-        placeholder="Заголовок"
-      />
+    <div className="flex items-center gap-2 pt-2 mb-3 px-1">
+      <TitleMark />
+      <div>
+        <EditableText
+          as="h3"
+          className="font-serif text-[1.45rem] leading-tight text-ink"
+          value={value}
+          onChange={onChange}
+          placeholder="Заголовок"
+        />
+        <TitleUnderline />
+      </div>
     </div>
   );
 }
@@ -728,6 +733,23 @@ function Cta({
 
 // ── Диспетчер: тип блока → компонент ──
 export function BlockRenderer({
+  block,
+  doors,
+  onChange,
+}: {
+  block: Block;
+  doors: { book: Door; message: Door };
+  onChange?: Edit<Block>;
+}) {
+  return (
+    <div className="relative">
+      <BlockBody block={block} doors={doors} onChange={onChange} />
+      <StickerBadge sticker={block.sticker} />
+    </div>
+  );
+}
+
+function BlockBody({
   block,
   doors,
   onChange,

@@ -84,3 +84,55 @@ details > summary::-webkit-details-marker { display: none; }
   background-size: 200% 100%;
   animation: shimmer 1.1s linear infinite;
 }
+
+/* ── Темы: переопределяют токены @theme внутри [data-theme] ──
+   Все классы Tailwind (bg-moss, text-ink/70…) берут цвет из этих
+   переменных, поэтому тема перекрашивает страницу целиком. */
+[data-theme="clay"] {
+  --color-bg:    #F6EDE4;
+  --color-cream: #FBF5EE;
+  --color-ink:   #3A2A22;
+  --color-sub:   #8C6F5F;
+  --color-moss:  #B5654A;
+  --color-mossd: #974F37;
+  --color-sage:  #D4B3A0;
+  --color-soft:  #F1DFD1;
+  --color-card:  #FFFCF8;
+  --color-deep:  #3D2720;
+  --color-clay:  #6E8B5E;
+  --color-clayd: #56724A;
+}
+[data-theme="dusk"] {
+  --color-bg:    #ECE8F4;
+  --color-cream: #F6F3FA;
+  --color-ink:   #2A2541;
+  --color-sub:   #6F6889;
+  --color-moss:  #6B5FA8;
+  --color-mossd: #56498F;
+  --color-sage:  #B3AAD4;
+  --color-soft:  #E0DBEF;
+  --color-card:  #FFFFFF;
+  --color-deep:  #1F1A35;
+  --color-clay:  #D98F78;
+  --color-clayd: #B96F59;
+}
+
+/* фон страницы под тему: тёплое сияние сверху, мягкий цвет темы снизу */
+.theme-surface {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(110% 60% at 10% -5%, color-mix(in oklab, var(--color-cream) 90%, transparent) 0%, transparent 55%),
+    radial-gradient(120% 70% at 100% 100%, color-mix(in oklab, var(--color-soft) 85%, transparent) 0%, transparent 60%);
+}
+
+/* стикер-наклейка: лёгкий наклон, мягкая тень, покачивание при наведении */
+.sticker {
+  filter: drop-shadow(0 4px 6px rgba(31, 24, 20, 0.18));
+  transition: transform 0.25s cubic-bezier(.34, 1.56, .64, 1);
+}
+.sticker:hover { transform: rotate(var(--rot)) scale(1.08); }
+@keyframes stickerIn {
+  from { opacity: 0; transform: rotate(var(--rot)) scale(0.4); }
+  to   { opacity: 1; transform: rotate(var(--rot)) scale(1); }
+}
+.sticker-in { animation: stickerIn 0.4s cubic-bezier(.34, 1.56, .64, 1); }

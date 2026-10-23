@@ -2,6 +2,8 @@ import type { Profile as ProfileData } from "@/lib/types";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { Stories } from "@/components/Stories";
 import { BlockRenderer } from "@/components/blocks";
+import { ThemeScope } from "@/components/ThemeScope";
+import { Sprig } from "@/components/doodles";
 
 // Собирает профиль из данных: шапка → актуальные → лента блоков.
 // Это «движок рендера» — порт renderProfile() из прототипа.
@@ -9,7 +11,7 @@ import { BlockRenderer } from "@/components/blocks";
 // на мобильном — обычная страница во весь экран.
 export function Profile({ profile }: { profile: ProfileData }) {
   return (
-    <div className="min-h-screen sm:py-12 sm:px-6 sm:flex sm:flex-col sm:items-center">
+    <ThemeScope theme={profile.theme} className="min-h-screen sm:py-12 sm:px-6 sm:flex sm:flex-col sm:items-center">
       {/* тёплые пятна фона — только на десктопе, чтобы колонка не висела в пустоте */}
       <div
         aria-hidden
@@ -25,13 +27,14 @@ export function Profile({ profile }: { profile: ProfileData }) {
 
         <Stories highlights={profile.highlights} />
 
-        <div className="px-4 space-y-4">
+        <div className="px-4 space-y-5">
           {profile.blocks.map((block, i) => (
             <BlockRenderer key={i} block={block} doors={profile.doors} />
           ))}
         </div>
 
-        <p className="text-center text-[12px] text-sage/80 mt-8">
+        <p className="flex items-center justify-center gap-1.5 text-[12px] text-sub/70 mt-10">
+          <Sprig className="w-4 h-4 text-sage" />
           Профиль на Ryadom
         </p>
       </main>
@@ -41,6 +44,6 @@ export function Profile({ profile }: { profile: ProfileData }) {
         <span aria-hidden className="text-sage">·</span>
         страница-визитка психолога
       </p>
-    </div>
+    </ThemeScope>
   );
 }

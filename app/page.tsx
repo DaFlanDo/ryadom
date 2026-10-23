@@ -1,18 +1,23 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { stickerSrc } from "@/lib/stickers";
 
 // Главная: что это и зачем, пример готовой страницы и вход в конструктор.
 // Пример — обычный профиль /demo (без пароля, изменить его нельзя).
 
 const STEPS = [
   {
+    sticker: "thought-balloon",
     title: "Ответьте на пару вопросов",
     text: "Имя, подход, с чем работаете, формат и цена — из ответов сразу собирается страница.",
   },
   {
+    sticker: "yarn",
     title: "Поправьте прямо на странице",
     text: "Кликнули по тексту — редактируете. Блоки можно добавлять, переставлять и убирать.",
   },
   {
+    sticker: "love-letter",
     title: "Отправьте ссылку клиенту",
     text: "Короткий адрес и красивое превью в мессенджере. Кнопки ведут в запись и в Telegram.",
   },
@@ -22,11 +27,14 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <div className="max-w-[440px] mx-auto px-5 pt-6 pb-16">
-        <div className="relative h-52 rounded-3xl overflow-hidden shadow-cozy-lg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/onboarding/intro.jpg" alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-deep/70 via-deep/10 to-transparent" />
-          <p className="absolute left-5 bottom-4 font-serif text-white text-[2.4rem] leading-none">Ryadom</p>
+        <div className="relative">
+          <div className="relative h-52 rounded-3xl overflow-hidden shadow-cozy-lg">
+            <img src="/onboarding/intro.jpg" alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-deep/70 via-deep/10 to-transparent" />
+            <p className="absolute left-5 bottom-4 font-serif text-white text-[2.4rem] leading-none">Ryadom</p>
+          </div>
+          <img src={stickerSrc("hot-beverage")} alt="" className="sticker absolute -bottom-6 right-5 w-16 h-16 rotate-[10deg]" />
+          <img src={stickerSrc("sparkles")} alt="" className="sticker absolute -top-4 right-16 w-11 h-11 -rotate-12" />
         </div>
 
         <h1 className="font-serif text-[2rem] leading-tight text-ink mt-7">
@@ -53,9 +61,9 @@ export default function Home() {
         </div>
 
         <ol className="mt-10 space-y-3">
-          {STEPS.map((s, i) => (
+          {STEPS.map((s) => (
             <li key={s.title} className="bg-card rounded-2xl p-5 border border-ink/5 shadow-cozy flex gap-4">
-              <span className="font-serif text-[1.8rem] leading-none text-clay">{i + 1}</span>
+              <img src={stickerSrc(s.sticker)} alt="" className="w-11 h-11 shrink-0 -rotate-6" />
               <div>
                 <p className="font-medium text-ink text-[15px]">{s.title}</p>
                 <p className="text-sub text-[14px] leading-relaxed mt-1">{s.text}</p>

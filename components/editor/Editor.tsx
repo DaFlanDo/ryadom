@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
-import type { Block, Highlight, Profile, ProfileHeader as Header } from "@/lib/types";
+import type { Block, Highlight, Profile, ProfileHeader as Header, Sticker, ThemeId } from "@/lib/types";
 import { emptyProfile } from "@/lib/profile";
 import { handleError } from "@/lib/handles";
 import { BLOCK_LIBRARY, createBlock } from "@/lib/blockSchema";
@@ -12,9 +12,13 @@ import {
   ArrowUpIcon,
   BlockTypeIcon,
   CheckIcon,
+  PaletteIcon,
   PencilIcon,
+  StickerIcon,
   TrashIcon,
 } from "@/components/icons";
+import { ThemeScope } from "@/components/ThemeScope";
+import { DEFAULT_THEME } from "@/lib/themes";
 import { EditProvider } from "@/components/blocks/EditContext";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 import { Sheet } from "./Sheet";
@@ -23,6 +27,8 @@ import { EditableHeader } from "./EditableHeader";
 import { HeaderEditor } from "./HeaderEditor";
 import { HighlightsStrip } from "./HighlightsStrip";
 import { EditableStoryViewer } from "./EditableStoryViewer";
+import { StickerPicker } from "./StickerPicker";
+import { ThemePicker } from "./ThemePicker";
 
 const STORAGE_KEY = "ryadom:profile:v1";
 
@@ -31,6 +37,7 @@ type Action =
   | { t: "load"; profile: Profile }
   | { t: "header"; header: Header }
   | { t: "doors"; doors: Profile["doors"] }
+  | { t: "theme"; theme: ThemeId }
   | { t: "highlights"; highlights: Highlight[] }
   | { t: "add"; block: Block }
   | { t: "update"; index: number; block: Block }
@@ -46,6 +53,8 @@ function reducer(state: Profile, a: Action): Profile {
       return { ...state, header: a.header };
     case "doors":
       return { ...state, doors: a.doors };
+    case "theme":
+      return { ...state, theme: a.theme };
     case "highlights":
       return { ...state, highlights: a.highlights };
     case "add":
@@ -74,7 +83,9 @@ type SheetState =
   | { kind: "library" }
   | { kind: "header" }
   | { kind: "block"; index: number }
-  | { kind: "highlight"; index: number };
+  | { kind: "highlight"; index: number }
+  | { kind: "theme" }
+  | { kind: "sticker"; target: "header" | number };
 
 export function Editor() {
   const [profile, dispatch] = useReducer(reducer, emptyProfile);
@@ -259,15 +270,31 @@ export function Editor() {
     ? BLOCK_LIBRARY.find((b) => b.type === sheetBlock.type)?.label ?? "Блок"
     : "";
 
+  // Стикер, который сейчас правится в листе: шапки или блока
+  const stickerTarget = sheet?.kind === "sticker" ? sheet.target : null;
+  const currentSticker =
+    stickerTarget === "header"
+      ? profile.header.sticker
+      : stickerTarget !== null
+        ? blocks[stickerTarget]?.sticker
+        : undefined;
+  const setSticker = (s: Sticker | undefined) => {
+    if (stickerTarget === "header") {
+      dispatch({ t: "header", header: { ...profile.header, sticker: s } });
+    } else if (stickerTarget !== null && blocks[stickerTarget]) {
+      dispatch({ t: "update", index: stickerTarget, block: { ...blocks[stickerTarget], sticker: s } });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-bg">
+    <ThemeScope theme={profile.theme} className="min-h-screen">
       {/* верхняя панель */}
       <div className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-ink/5">
         <div className="max-w-[460px] mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-serif text-xl text-ink">Конструктор</span>
+          <span className="font-serif text-xl text-ink">Ryadom</span>
           <div className="flex items-center gap-2">
             <span
-              className={`text-[12px] transition-opacity ${
+              className={`text-[12px] whitespace-nowrap transition-opacity ${
                 saved ? "opacity-100 text-moss" : "opacity-0"
               }`}
             >
@@ -281,6 +308,13 @@ export function Editor() {
                 {copied ? "Скопировано ✓" : "Поделиться"}
               </button>
             )}
+            <button
+              onClick={() => setSheet({ kind: "theme" })}
+              aria-label="Оформление"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-ink/70 hover:bg-ink/5"
+            >
+              <PaletteIcon className="w-5 h-5" />
+            </button>
             {/* вторичные действия — в меню, чтобы панель не разъезжалась на мобиле */}
             <div className="relative">
               <button
@@ -345,6 +379,7 @@ export function Editor() {
             doors={profile.doors}
             onChange={(h) => dispatch({ t: "header", header: h })}
             onEditLinks={() => setSheet({ kind: "header" })}
+            onEditSticker={() => setSheet({ kind: "sticker", target: "header" })}
           />
         </EditProvider>
 
@@ -384,6 +419,7 @@ export function Editor() {
               onUp={() => dispatch({ t: "move", index: selected, dir: -1 })}
               onDown={() => dispatch({ t: "move", index: selected, dir: 1 })}
               onEdit={() => setSheet({ kind: "block", index: selected })}
+              onSticker={() => setSheet({ kind: "sticker", target: selected })}
               onDelete={() => {
                 if (confirm("Удалить блок?")) {
                   dispatch({ t: "delete", index: selected });
@@ -448,6 +484,37 @@ export function Editor() {
         )}
       </Sheet>
 
+      {/* ── Лист: оформление (тема страницы) ── */}
+      <Sheet
+        open={sheet?.kind === "theme"}
+        onClose={() => setSheet(null)}
+        title="Оформление"
+        footer={
+          <button onClick={() => setSheet(null)} className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px]">
+            Готово
+          </button>
+        }
+      >
+        <ThemePicker
+          value={profile.theme ?? DEFAULT_THEME}
+          onChange={(theme) => dispatch({ t: "theme", theme })}
+        />
+      </Sheet>
+
+      {/* ── Лист: стикер шапки или блока ── */}
+      <Sheet
+        open={sheet?.kind === "sticker"}
+        onClose={() => setSheet(null)}
+        title="Стикер"
+        footer={
+          <button onClick={() => setSheet(null)} className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px]">
+            Готово
+          </button>
+        }
+      >
+        <StickerPicker key={String(stickerTarget)} value={currentSticker} onChange={setSticker} />
+      </Sheet>
+
       {/* ── Лист: кнопки и ссылки (нетекстовые поля дверей) ── */}
       <Sheet
         open={sheet?.kind === "header"}
@@ -471,7 +538,7 @@ export function Editor() {
           onClose={() => setSheet(null)}
         />
       )}
-    </div>
+    </ThemeScope>
   );
 }
 
@@ -514,6 +581,7 @@ function BlockActionBar({
   onUp,
   onDown,
   onEdit,
+  onSticker,
   onDelete,
   onClose,
 }: {
@@ -522,6 +590,7 @@ function BlockActionBar({
   onUp: () => void;
   onDown: () => void;
   onEdit: () => void;
+  onSticker: () => void;
   onDelete: () => void;
   onClose: () => void;
 }) {
@@ -535,6 +604,7 @@ function BlockActionBar({
       >
         <PencilIcon className="w-4 h-4" /> Редактировать
       </button>
+      <BarBtn onClick={onSticker} aria="Стикер"><StickerIcon className="w-4.5 h-4.5" /></BarBtn>
       <BarBtn onClick={onDelete} danger aria="Удалить"><TrashIcon className="w-4.5 h-4.5" /></BarBtn>
       <BarBtn onClick={onClose} aria="Готово"><CheckIcon className="w-4.5 h-4.5" /></BarBtn>
     </div>
