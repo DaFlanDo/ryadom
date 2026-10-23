@@ -5,72 +5,54 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getSessionPsychId } from "@/lib/session";
 import { supabaseAdmin, PROFILE_BUCKET } from "@/lib/supabase/server";
+import { sniffImage } from "@/lib/imageType";
+import { rateLimit } from "@/lib/rateLimit";
+import { jsonError, serverError } from "@/lib/http";
 
 const MAX_BYTES = 8 * 1024 * 1024; // 8MB — фото уже ужато на клиенте
 
-function extFromType(type: string): string {
-  if (type.includes("png")) return "png";
-  if (type.includes("webp")) return "webp";
-  if (type.includes("gif")) return "gif";
-  return "jpg";
-}
-
-// "data:image/jpeg;base64,XXXX" → { buffer, contentType }
-function parseDataUrl(dataUrl: string): { buffer: Buffer; contentType: string } | null {
-  const m = /^data:([^;]+);base64,(.+)$/s.exec(dataUrl);
-  if (!m) return null;
-  return { contentType: m[1], buffer: Buffer.from(m[2], "base64") };
+async function readUpload(req: Request): Promise<Buffer | null> {
+  const ctype = req.headers.get("content-type") || "";
+  if (ctype.includes("application/json")) {
+    const { dataUrl } = await req.json();
+    const m = typeof dataUrl === "string" ? /^data:[^;]+;base64,(.+)$/s.exec(dataUrl) : null;
+    return m ? Buffer.from(m[1], "base64") : null;
+  }
+  if (ctype.includes("multipart/form-data")) {
+    const file = (await req.formData()).get("file");
+    return file instanceof File ? Buffer.from(await file.arrayBuffer()) : null;
+  }
+  return null;
 }
 
 export async function POST(req: Request) {
   const psychId = await getSessionPsychId();
-  if (!psychId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!psychId) return jsonError("unauthorized", 401);
+  if (!rateLimit(`upload:${psychId}`, 30, 60_000)) return jsonError("Слишком много загрузок", 429);
 
-  let buffer: Buffer;
-  let contentType: string;
-
-  const ctype = req.headers.get("content-type") || "";
+  let buffer: Buffer | null;
   try {
-    if (ctype.includes("application/json")) {
-      const { dataUrl } = await req.json();
-      const parsed = typeof dataUrl === "string" ? parseDataUrl(dataUrl) : null;
-      if (!parsed) return NextResponse.json({ error: "bad dataUrl" }, { status: 400 });
-      buffer = parsed.buffer;
-      contentType = parsed.contentType;
-    } else {
-      const form = await req.formData();
-      const file = form.get("file");
-      if (!(file instanceof File)) {
-        return NextResponse.json({ error: "file required" }, { status: 400 });
-      }
-      contentType = file.type || "image/jpeg";
-      buffer = Buffer.from(await file.arrayBuffer());
-    }
+    buffer = await readUpload(req);
   } catch {
-    return NextResponse.json({ error: "bad request" }, { status: 400 });
+    return jsonError("bad request", 400);
   }
+  if (!buffer) return jsonError("file required", 400);
+  if (buffer.byteLength > MAX_BYTES) return jsonError("too large", 413);
 
-  if (!contentType.startsWith("image/")) {
-    return NextResponse.json({ error: "not an image" }, { status: 400 });
-  }
-  if (buffer.byteLength > MAX_BYTES) {
-    return NextResponse.json({ error: "too large" }, { status: 413 });
-  }
+  const type = sniffImage(buffer);
+  if (!type) return jsonError("Нужна картинка: JPEG, PNG, WebP или GIF", 400);
 
-  const key = `${psychId}/${randomUUID()}.${extFromType(contentType)}`;
+  const key = `${psychId}/${randomUUID()}.${type.ext}`;
   try {
     const db = supabaseAdmin();
     const { error } = await db.storage
       .from(PROFILE_BUCKET)
-      .upload(key, buffer, { contentType, upsert: false });
+      .upload(key, buffer, { contentType: type.mime, upsert: false });
     if (error) throw error;
 
     const { data } = db.storage.from(PROFILE_BUCKET).getPublicUrl(key);
     return NextResponse.json({ url: data.publicUrl });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "upload failed" },
-      { status: 500 }
-    );
+    return serverError(e);
   }
 }

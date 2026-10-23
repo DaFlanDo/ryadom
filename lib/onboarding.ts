@@ -44,11 +44,8 @@ export const ABOUT_TAGS = [
 const DEFAULT_COVER = LANDSCAPES[0];
 
 // Мягкий плейсхолдер-аватар (пустой шаблон, пока человек не загрузил фото).
-const PLACEHOLDER_AVATAR =
-  "data:image/svg+xml," +
-  encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='160' height='160' fill='#E2EAD7'/><circle cx='80' cy='60' r='27' fill='#C4D2B4'/><path d='M28 152c0-31 23-48 52-48s52 17 52 48z' fill='#C4D2B4'/></svg>`
-  );
+// Файл из public/, а не data-URL: в профиле разрешены только ссылки.
+const PLACEHOLDER_AVATAR = "/placeholder-avatar.svg";
 
 export type OnboardingAnswers = {
   name: string;

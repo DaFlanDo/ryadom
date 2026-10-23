@@ -15,9 +15,9 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Екатерина Морозова — психолог",
+  title: "Ryadom — страница для психолога",
   description:
-    "Помогаю выйти из тревоги и перестать жить в режиме постоянного напряжения.",
+    "Конструктор тёплой личной страницы для психологов: о себе, подход, услуги и кнопка «записаться».",
 };
 
 export default function RootLayout({

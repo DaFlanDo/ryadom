@@ -14,3 +14,6 @@ tsconfig.tsbuildinfo
 # os / editor / tooling
 .DS_Store
 .claude/
+
+# макеты дизайна — локально, не в репозитории
+ONBOARDING/

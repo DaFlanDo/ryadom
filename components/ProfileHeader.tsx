@@ -4,6 +4,7 @@ import type { ProfileHeader as Header, Door } from "@/lib/types";
 import { CloseIcon, TelegramIcon } from "@/components/icons";
 import { useEditing } from "@/components/blocks/EditContext";
 import { EditableText } from "@/components/blocks/inline";
+import { DoorLink } from "@/components/DoorLink";
 
 export function ProfileHeader({
   header,
@@ -121,13 +122,17 @@ export function ProfileHeader({
         )}
 
         <div className="flex gap-2.5">
-          <button className="flex-1 bg-moss text-white py-3 rounded-xl font-semibold text-[15px] shadow-md shadow-moss/25 hover:bg-mossd transition-colors">
-            {doors.book.label}
-          </button>
-          <button className="flex-1 bg-card border border-ink/10 text-ink py-3 rounded-xl font-semibold text-[15px] hover:border-moss/40 transition-colors flex items-center justify-center gap-2">
+          <DoorLink
+            door={doors.book}
+            className="flex-1 text-center bg-moss text-white py-3 rounded-xl font-semibold text-[15px] shadow-md shadow-moss/25 hover:bg-mossd transition-colors"
+          />
+          <DoorLink
+            door={doors.message}
+            className="flex-1 bg-card border border-ink/10 text-ink py-3 rounded-xl font-semibold text-[15px] hover:border-moss/40 transition-colors flex items-center justify-center gap-2"
+          >
             <TelegramIcon className="w-4 h-4 text-[#229ED9]" />
             {doors.message.label}
-          </button>
+          </DoorLink>
         </div>
       </div>
     </header>

@@ -28,6 +28,7 @@ export type VideoBlock = {
   title?: string;
   img: string;
   caption?: string;
+  url?: string; // ссылка на само видео (YouTube, VK…); по клику открывается в новой вкладке
 };
 
 export type StepsBlock = {

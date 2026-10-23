@@ -186,18 +186,21 @@ export function Editor() {
   // helper для актуальных
   const setHighlights = (hs: Highlight[]) => dispatch({ t: "highlights", highlights: hs });
 
-  const onLogin = async (handle: string) => {
-    const res = await fetch("/api/auth/dev", {
+  const onAuth = async (mode: AuthMode, form: AuthForm) => {
+    const res = await fetch(`/api/auth/${mode}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ handle }),
+      body: JSON.stringify(form),
     });
-    if (!res.ok) {
-      const { error } = await res.json().catch(() => ({ error: "Не удалось войти" }));
-      throw new Error(error || "Не удалось войти");
-    }
     const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.error || "Не удалось войти");
     if (data?.handle) setMyHandle(data.handle);
+    // новый аккаунт начинает с онбординга, а не с чужого черновика в этом браузере
+    if (mode === "register") {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
+    }
     setView("loading");
     await loadOwnerProfile();
   };
@@ -235,7 +238,7 @@ export function Editor() {
   }
 
   if (view === "login") {
-    return <LoginScreen onLogin={onLogin} />;
+    return <LoginScreen onAuth={onAuth} />;
   }
 
   if (view === "onboarding") {
@@ -566,23 +569,32 @@ function BarBtn({
 }
 
 // ── Экран входа (временный dev-логин по handle; позже — Telegram) ──
-function LoginScreen({ onLogin }: { onLogin: (handle: string) => Promise<void> }) {
+type AuthMode = "login" | "register";
+type AuthForm = { email: string; password: string; handle?: string };
+
+const authInput =
+  "w-full bg-card border border-ink/15 rounded-xl px-3 py-3 text-[16px] text-ink outline-none focus:border-moss/60 transition";
+
+function LoginScreen({ onAuth }: { onAuth: (mode: AuthMode, form: AuthForm) => Promise<void> }) {
+  const [mode, setMode] = useState<AuthMode>("register");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [handle, setHandle] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const h = handle.trim().toLowerCase();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const h = handle.trim().toLowerCase();
-    const invalid = handleError(h);
-    if (invalid) {
-      setError(invalid);
-      return;
+    if (mode === "register") {
+      const invalid = handleError(h);
+      if (invalid) return setError(invalid);
+      if (password.length < 8) return setError("Пароль — не короче 8 символов");
     }
     setBusy(true);
     setError(null);
     try {
-      await onLogin(h);
+      await onAuth(mode, mode === "register" ? { email, password, handle: h } : { email, password });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось войти");
       setBusy(false);
@@ -591,30 +603,67 @@ function LoginScreen({ onLogin }: { onLogin: (handle: string) => Promise<void> }
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-6">
-      <form onSubmit={submit} className="w-full max-w-[360px]">
-        <h1 className="font-serif text-2xl text-ink">Вход в конструктор</h1>
-        <p className="text-[13px] text-sub mt-1 mb-5">
-          Введите адрес профиля — это будет ссылка вида ryadom.app/<span className="text-ink">{handle.trim().toLowerCase() || "имя"}</span>
-        </p>
-        <div className="flex items-center bg-card border border-ink/15 rounded-xl px-3 focus-within:border-moss/60 transition">
-          <span className="text-sub text-[15px] select-none">ryadom.app/</span>
-          <input
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            placeholder="kate"
-            className="flex-1 bg-transparent py-3 px-1 text-[16px] text-ink outline-none"
-          />
+      <form onSubmit={submit} className="w-full max-w-[360px] space-y-3">
+        <h1 className="font-serif text-2xl text-ink">
+          {mode === "register" ? "Своя страница за пару минут" : "Вход в конструктор"}
+        </h1>
+        <div className="flex gap-1 bg-soft rounded-xl p-1 text-[14px] font-medium">
+          {(["register", "login"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => {
+                setMode(m);
+                setError(null);
+              }}
+              className={`flex-1 py-2 rounded-lg transition ${mode === m ? "bg-card text-ink shadow-sm" : "text-sub"}`}
+            >
+              {m === "register" ? "Регистрация" : "Вход"}
+            </button>
+          ))}
         </div>
-        {error && <p className="text-[12px] text-red-600 mt-2">{error}</p>}
+        <input
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          className={authInput}
+        />
+        <input
+          type="password"
+          required
+          autoComplete={mode === "register" ? "new-password" : "current-password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={mode === "register" ? "Пароль, от 8 символов" : "Пароль"}
+          className={authInput}
+        />
+        {mode === "register" && (
+          <div>
+            <div className="flex items-center bg-card border border-ink/15 rounded-xl px-3 focus-within:border-moss/60 transition">
+              <span className="text-sub text-[15px] select-none">ryadom.app/</span>
+              <input
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="kate"
+                className="flex-1 bg-transparent py-3 px-1 text-[16px] text-ink outline-none"
+              />
+            </div>
+            <p className="text-[12px] text-sub mt-1.5">Адрес вашей страницы, его вы будете отправлять клиентам</p>
+          </div>
+        )}
+        {error && <p className="text-[12px] text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={busy}
-          className="w-full mt-4 bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px] disabled:opacity-50 hover:bg-mossd transition"
+          className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px] disabled:opacity-50 hover:bg-mossd transition"
         >
-          {busy ? "Входим…" : "Войти"}
+          {busy ? "Секунду…" : mode === "register" ? "Создать страницу" : "Войти"}
         </button>
       </form>
     </div>

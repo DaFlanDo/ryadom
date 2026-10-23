@@ -10,8 +10,9 @@ create extension if not exists "pgcrypto";
 
 create table if not exists public.psychologists (
   id           uuid primary key default gen_random_uuid(),
-  handle       text unique not null,          -- публичный адрес: /u/<handle>
-  email        text unique,                   -- на будущее (email-вход)
+  handle       text unique not null,          -- публичный адрес: /<handle>
+  email        text unique,                   -- вход; хранится в нижнем регистре
+  password_hash text,                         -- scrypt (lib/password.ts); null — войти нельзя
   telegram_id  bigint unique,                 -- на будущее (вход через Telegram Mini App)
   display_name text,
   profile      jsonb not null default '{}'::jsonb,  -- весь Profile целиком
@@ -25,8 +26,13 @@ create table if not exists public.psychologists (
 alter table public.psychologists enable row level security;
 
 -- ────────────────────────────────────────────────────────────
---  Storage (создать вручную в дашборде):
---  Storage → New bucket → name: "profile-images", Public bucket: ✅
---  Загрузку фото делает серверный роут /api/upload под service-role,
---  чтение — по public URL (bucket публичный), ключей не требует.
+--  Storage: публичный bucket для фото. Загружает только серверный
+--  роут /api/upload под service-role, читают — по public URL.
 -- ────────────────────────────────────────────────────────────
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('profile-images', 'profile-images', true, 8388608,
+        array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;

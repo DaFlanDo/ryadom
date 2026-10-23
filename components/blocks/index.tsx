@@ -26,6 +26,8 @@ import { PlayIcon, PlusIcon, StarIcon } from "@/components/icons";
 import { PLACEHOLDER_IMG } from "@/lib/blockSchema";
 import { landscape } from "@/lib/landscapes";
 import { useEditing } from "./EditContext";
+import { DoorLink } from "@/components/DoorLink";
+import { linkHref } from "@/lib/urls";
 import {
   EditableText,
   EditableImage,
@@ -208,10 +210,21 @@ function Grid({ block, onChange }: BP<GridBlock>) {
 // [4] Видео-визитка
 function Video({ block, onChange }: BP<VideoBlock>) {
   const set = (p: Partial<VideoBlock>) => onChange?.({ ...block, ...p });
+  const editing = useEditing();
+  const href = linkHref(block.url);
   return (
     <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <article className="relative h-56 rounded-2xl overflow-hidden shadow-sm group cursor-pointer">
+      {/* на публичной странице карточка — ссылка на само видео */}
+      {!editing && href && (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="sr-only">
+          Смотреть видео
+        </a>
+      )}
+      <article
+        className="relative h-56 rounded-2xl overflow-hidden shadow-sm group cursor-pointer"
+        onClick={!editing && href ? () => window.open(href, "_blank", "noopener,noreferrer") : undefined}
+      >
         <EditableImage
           value={block.img}
           onChange={(v) => set({ img: v })}
@@ -231,6 +244,14 @@ function Video({ block, onChange }: BP<VideoBlock>) {
           placeholder="Подпись к видео"
         />
       </article>
+      {editing && (
+        <input
+          value={block.url ?? ""}
+          onChange={(e) => set({ url: e.target.value })}
+          placeholder="Ссылка на видео: YouTube, VK, Rutube…"
+          className="mt-2 w-full rounded-xl border border-ink/10 bg-card px-3.5 py-2.5 text-[14px] text-ink placeholder:text-sub/50 focus:border-moss outline-none"
+        />
+      )}
     </section>
   );
 }
@@ -692,12 +713,14 @@ function Cta({
         placeholder="Короткий текст"
       />
       <div className="flex gap-2.5">
-        <button className="flex-1 bg-moss text-white py-3 rounded-xl font-semibold text-[15px] hover:bg-mossd transition-colors">
-          {doors.book.label}
-        </button>
-        <button className="flex-1 bg-white/10 backdrop-blur border border-white/15 text-white py-3 rounded-xl font-semibold text-[15px] hover:bg-white/20 transition-colors">
-          {doors.message.label}
-        </button>
+        <DoorLink
+          door={doors.book}
+          className="flex-1 text-center bg-moss text-white py-3 rounded-xl font-semibold text-[15px] hover:bg-mossd transition-colors"
+        />
+        <DoorLink
+          door={doors.message}
+          className="flex-1 text-center bg-white/10 backdrop-blur border border-white/15 text-white py-3 rounded-xl font-semibold text-[15px] hover:bg-white/20 transition-colors"
+        />
       </div>
     </article>
   );
