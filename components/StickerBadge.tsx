@@ -16,12 +16,12 @@ const PLACE: Place = {
 };
 
 // В шапке углы другие: сверху — на обложке под кнопками редактора,
-// снизу — рядом с аватаром и над статусом.
+// снизу — у полароида с аватаром и над статусом.
 export const HEADER_PLACE: Place = {
   tl: { pos: "top-14 left-5", rot: "-10deg" },
   tr: { pos: "top-14 right-5", rot: "10deg" },
-  bl: { pos: "top-[146px] left-[132px]", rot: "-6deg" },
-  br: { pos: "top-[112px] right-6", rot: "8deg" },
+  bl: { pos: "top-[210px] left-[128px]", rot: "-6deg" },
+  br: { pos: "top-[118px] right-7", rot: "8deg" },
 };
 
 export function StickerBadge({

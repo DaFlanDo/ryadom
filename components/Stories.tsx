@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Highlight } from "@/lib/types";
 import { CloseIcon } from "@/components/icons";
+import { HighlightThumb } from "@/components/paper";
 
 // Кружочки актуальных + полноэкранный сторис-просмотрщик.
 // Листает слайды внутри актуального, затем переходит к следующему.
@@ -42,17 +43,15 @@ export function Stories({ highlights }: { highlights: Highlight[] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, close, next, prev]);
 
-  const coverOf = (h: Highlight) => h.cover || h.slides[0]?.img;
   const h = highlights[hi];
   const slide = h?.slides[si];
 
   return (
     <>
-      {/* Кружочки */}
-      <div className="flex gap-4 overflow-x-auto no-scrollbar px-5 py-6">
-        {highlights.map((s, i) => {
-          const cov = coverOf(s);
-          return (
+      {/* Миниатюры-полароиды */}
+      {highlights.length > 0 && (
+        <div className="flex gap-3 overflow-x-auto no-scrollbar px-5 pt-7 pb-2">
+          {highlights.map((s, i) => (
             <button
               key={i}
               onClick={() => {
@@ -60,23 +59,12 @@ export function Stories({ highlights }: { highlights: Highlight[] }) {
                 setSi(0);
                 setOpen(true);
               }}
-              className="flex flex-col items-center gap-1.5 shrink-0 w-16"
             >
-              <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-moss to-sage">
-                {cov ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={cov} alt={s.title} className="w-full h-full rounded-full object-cover ring-2 ring-bg" />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-card ring-2 ring-bg flex items-center justify-center text-xl">
-                    {s.emoji ?? ""}
-                  </div>
-                )}
-              </div>
-              <span className="text-[11px] text-sub">{s.title}</span>
+              <HighlightThumb highlight={s} index={i} />
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Просмотрщик */}
       {open && h && slide && (

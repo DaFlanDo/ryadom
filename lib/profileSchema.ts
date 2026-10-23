@@ -9,7 +9,7 @@ import { z } from "zod";
 import type { Profile } from "./types";
 import { isSafeImage, isSafeLink } from "./urls";
 import { STICKER_IDS } from "./stickers";
-import { THEME_IDS } from "./themes";
+import { LEGACY_THEMES, THEME_IDS } from "./themes";
 
 const SHORT = 200;
 const LONG = 5000;
@@ -51,8 +51,9 @@ const block = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("education"), ...decor,
     title: optStr(),
-    items: list(z.object({ place: str(), detail: str(LONG) })),
+    items: list(z.object({ place: str(), detail: str(LONG), year: optStr(20) })),
     diplomas: list(image).optional(),
+    trust: list(str()).optional(),
   }),
   z.object({ type: z.literal("photo"), ...decor, img: image, caption: optStr() }),
   z.object({
@@ -67,6 +68,7 @@ const block = z.discriminatedUnion("type", [
         badge: optStr(50),
       })
     ),
+    terms: optStr(LONG),
   }),
   z.object({
     type: z.literal("faq"), ...decor,
@@ -80,12 +82,15 @@ const block = z.discriminatedUnion("type", [
   }),
   z.object({ type: z.literal("meta"), ...decor, items: list(z.object({ value: str(50), label: str() })) }),
   z.object({ type: z.literal("cta"), ...decor, title: str(), text: str(LONG) }),
+  z.object({ type: z.literal("topics"), ...decor, title: optStr(), items: list(str()) }),
+  z.object({ type: z.literal("meeting"), ...decor, title: optStr(), text: str(LONG) }),
 ]);
 
 const door = z.object({ label: str(60), url: link });
 
 export const profileSchema = z.object({
-  theme: z.enum(THEME_IDS).optional(),
+  // старые id тем («moss», «clay», «dusk») молча переводим в «Записку»
+  theme: z.preprocess((v) => (typeof v === "string" ? (LEGACY_THEMES[v] ?? v) : v), z.enum(THEME_IDS).optional()),
   header: z.object({
     name: str(),
     role: str(),
@@ -95,6 +100,9 @@ export const profileSchema = z.object({
     status: str(),
     meta: list(str()),
     sticker: sticker.optional(),
+    hello: optStr(),
+    note: optStr(LONG),
+    replyHint: optStr(),
   }),
   highlights: list(
     z.object({

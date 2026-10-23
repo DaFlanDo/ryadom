@@ -289,6 +289,27 @@ function TargetIcon({ className = "w-4 h-4" }: IconProps) {
   );
 }
 
+// облачко с фразами — «с чем приходят»
+function TopicsIcon({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <Stroke className={className}>
+      <path d="M4 5h16v11H9l-4 3.5V16H4z" />
+      <path d="M8 9h8M8 12.5h5" />
+    </Stroke>
+  );
+}
+
+// чашка — «первая встреча»
+function CupIcon({ className = "w-4 h-4" }: IconProps) {
+  return (
+    <Stroke className={className}>
+      <path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z" />
+      <path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16" />
+      <path d="M8 3.5c-.6.9.6 1.6 0 2.5M12 3.5c-.6.9.6 1.6 0 2.5" />
+    </Stroke>
+  );
+}
+
 const BLOCK_ICONS: Record<BlockType, (p: IconProps) => React.ReactNode> = {
   statement: QuoteIcon,
   text: TypeIcon,
@@ -302,6 +323,8 @@ const BLOCK_ICONS: Record<BlockType, (p: IconProps) => React.ReactNode> = {
   reviews: ChatIcon,
   meta: ChartIcon,
   cta: TargetIcon,
+  topics: TopicsIcon,
+  meeting: CupIcon,
 };
 
 export function BlockTypeIcon({ type, className }: { type: BlockType; className?: string }) {

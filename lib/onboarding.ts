@@ -1,4 +1,4 @@
-import type { Profile } from "./types";
+import type { Profile, ThemeId } from "./types";
 import { LANDSCAPES } from "./landscapes";
 
 // ── Справочники для онбординга ──
@@ -58,6 +58,8 @@ export type OnboardingAnswers = {
   tg: string;
   aboutTags: string[]; // выбранные теги-настроения
   aboutNotes: string; // пара фраз своими словами (сырьё для сборки)
+  note: string; // «пара слов от меня» — записка под шапкой
+  theme: ThemeId;
 };
 
 export const emptyAnswers: OnboardingAnswers = {
@@ -71,7 +73,54 @@ export const emptyAnswers: OnboardingAnswers = {
   tg: "",
   aboutTags: [],
   aboutNotes: "",
+  note: "",
+  theme: "note",
 };
+
+// Готовые варианты «пары слов от меня»: выбрать близкий и поправить под себя
+export const NOTE_PRESETS = [
+  "Если вы это читаете — наверное, сейчас непросто. Это нормально. Можно начать с одного сообщения, без анкет и обязательств.",
+  "Не обязательно точно знать, что не так. Можно прийти с ощущением «что-то не то» — разберёмся вместе.",
+  "Здесь можно не держаться. Говорить в своём темпе, сомневаться и задавать любые вопросы.",
+  "Первый шаг — самый трудный. Напишите хотя бы «здравствуйте», дальше будет легче.",
+];
+
+// Темы из онбординга → живые фразы для блока «с чем ко мне приходят»
+const TOPIC_PHRASES: Record<string, string> = {
+  Тревога: "тревога, которая не отпускает",
+  Выгорание: "выгорание и усталость",
+  Самооценка: "«со мной что-то не так»",
+  Отношения: "сложности в отношениях",
+  Депрессия: "апатия, ничего не радует",
+  Травма: "тяжёлый опыт, который не отпускает",
+  "Панические атаки": "панические атаки",
+  Утрата: "потеря близкого",
+  Стресс: "постоянный стресс",
+};
+const topicPhrase = (t: string) => TOPIC_PHRASES[t] ?? t.toLowerCase();
+
+// «Как пройдёт первая встреча» — из формата работы
+function meetingText(format: string): string {
+  const where =
+    format === "Очно" ? "В кабинете, 50 минут." : format === "Онлайн и очно" ? "Онлайн или в кабинете, 50 минут." : "50 минут по видео.";
+  return `${where} Вы рассказываете, что беспокоит, — сколько захотите. Я задаю вопросы и в конце говорю, как вижу нашу работу. Если не подойдём друг другу — это нормально, помогу найти другого специалиста.`;
+}
+
+// Типовые вопросы с черновиками ответов: психологу остаётся поправить, а не писать с нуля
+const DEFAULT_FAQ = [
+  {
+    q: "Мне точно нужна терапия?",
+    a: "Если сомневаетесь — это уже повод просто написать. Решать, начинать ли, будете вы, без давления.",
+  },
+  {
+    q: "Это конфиденциально?",
+    a: "Да. Всё, что вы рассказываете, остаётся между нами. Исключения — только угроза жизни, и о них я скажу заранее.",
+  },
+  {
+    q: "А если станет некомфортно?",
+    a: "Об этом можно говорить прямо на встрече — это тоже часть работы. Остановиться можно в любой момент.",
+  },
+];
 
 // ── Локальная «AI»-сборка тёплого абзаца из тегов и фраз ──
 // Без бэкенда: складывает живой текст от первого лица из того, что натапали.
@@ -164,16 +213,12 @@ export function buildDraftProfile(a: OnboardingAnswers): Profile {
 
   const blocks: Profile["blocks"] = [];
   if (a.topics.length) {
-    blocks.push({
-      type: "grid",
-      title: "С чем работаю",
-      items: a.topics.map((t) => ({ label: t, img: TOPICS[t]?.img ?? DEFAULT_COVER })),
-    });
+    blocks.push({ type: "topics", title: "с чем ко мне приходят", items: a.topics.map(topicPhrase) });
   }
   if (a.price.trim()) {
     blocks.push({
       type: "pricing",
-      title: "Стоимость",
+      title: "сколько стоит",
       items: [
         {
           name: "Разовая сессия",
@@ -186,14 +231,17 @@ export function buildDraftProfile(a: OnboardingAnswers): Profile {
   }
 
   return {
+    theme: a.theme,
     header: {
       name,
       role,
       bio,
       avatar: a.avatar || PLACEHOLDER_AVATAR,
       cover: DEFAULT_COVER,
-      status: "веду приём",
+      status: "беру новых клиентов",
       meta,
+      note: a.note.trim() || undefined,
+      replyHint: "отвечаю обычно в течение дня",
     },
     highlights: [],
     blocks,
@@ -219,74 +267,63 @@ export function buildStarterProfile(a: OnboardingAnswers): Profile {
   if (a.format) meta.push(a.format.toLowerCase());
   meta.push("RU");
 
-  // актуальные: «Обо мне» + по одному на первые темы
-  const highlights = [
-    { title: "Обо мне", cover: avatar, slides: [{ img: avatar, caption: bio }] },
-    ...a.topics.slice(0, 3).map((t) => ({
-      title: t,
-      emoji: TOPICS[t]?.emoji ?? "✨",
-      slides: [
-        {
-          img: TOPICS[t]?.img ?? DEFAULT_COVER,
-          caption: `Помогаю с темой «${t.toLowerCase()}». Подробнее расскажу на первой встрече.`,
-        },
-      ],
-    })),
-  ];
+  // актуальное: пока одно «обо мне» с фото — дальше психолог добавит своё
+  const highlights = a.avatar ? [{ title: "обо мне", cover: avatar, slides: [{ img: avatar, caption: bio }] }] : [];
 
   const blocks: Profile["blocks"] = [];
 
   if (a.topics.length) {
-    blocks.push({
-      type: "grid",
-      title: "С чем работаю",
-      items: a.topics.map((t) => ({
-        label: t,
-        img: TOPICS[t]?.img ?? DEFAULT_COVER,
-      })),
-    });
+    blocks.push({ type: "topics", title: "с чем ко мне приходят", items: a.topics.map(topicPhrase) });
   }
+
+  blocks.push({ type: "meeting", title: "как пройдёт первая встреча", text: meetingText(a.format) });
 
   blocks.push({
     type: "steps",
-    title: "Как проходит работа",
+    title: "как проходит работа",
     items: [
-      { n: "01", title: "Знакомство", text: "Первая встреча без обязательств — смотрим, подходим ли друг другу." },
-      { n: "02", title: "Работа", text: "Регулярные встречи. Разбираем, что и почему происходит." },
-      { n: "03", title: "Опора", text: "Уходишь с навыками, которые остаются с тобой." },
+      { n: "1", title: "Знакомство", text: "Первая встреча без обязательств — смотрим, подходим ли друг другу." },
+      { n: "2", title: "Работа", text: "Регулярные встречи. Разбираем, что и почему происходит." },
+      { n: "3", title: "Опора", text: "Уходите с навыками, которые остаются с вами." },
     ],
   });
 
   if (a.price.trim()) {
     blocks.push({
       type: "pricing",
-      title: "Стоимость",
+      title: "сколько стоит",
       items: [
         {
-          name: "Разовая сессия",
+          name: "Встреча, 50 минут",
           price: a.price.trim(),
           note: a.format ? a.format.toLowerCase() : "онлайн",
           featured: false,
         },
       ],
+      terms: "оплата после встречи · перенос за сутки — бесплатно",
     });
   }
 
+  blocks.push({ type: "faq", title: "о чём часто спрашивают", items: DEFAULT_FAQ });
+
   blocks.push({
     type: "cta",
-    title: "С чего начать — решаешь ты",
-    text: "Можно записаться на сессию. А можно сначала просто написать — это ни к чему не обязывает.",
+    title: "Если откликнулось — напишите",
+    text: "Можно сразу записаться, а можно просто написать «здравствуйте» — это ни к чему не обязывает.",
   });
 
   return {
+    theme: a.theme,
     header: {
       name: a.name.trim() || "Психолог",
       role,
       bio,
       avatar,
       cover: DEFAULT_COVER,
-      status: "веду приём",
+      status: "беру новых клиентов",
       meta,
+      note: a.note.trim() || NOTE_PRESETS[0],
+      replyHint: "отвечаю обычно в течение дня",
     },
     highlights,
     blocks,

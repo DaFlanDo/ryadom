@@ -1,8 +1,9 @@
 // ════════════════════════════════════════════════════════════
-//  Ryadom · библиотека блоков (React-порт render.js)
-//  Один компонент на тип блока. BlockRenderer выбирает нужный.
+//  Ryadom · блоки страницы в стиле «Записки».
+//  Один компонент на тип блока, BlockRenderer выбирает нужный.
 //  Один и тот же код рисует публичную страницу И редактор:
-//  правка включается контекстом (EditProvider) через примитивы.
+//  правка включается контекстом (EditProvider) через примитивы inline.tsx.
+//  Бумага, крепления и почерк берутся из темы (components/paper.tsx).
 // ════════════════════════════════════════════════════════════
 "use client";
 
@@ -20,24 +21,19 @@ import type {
   ReviewsBlock,
   MetaBlock,
   CtaBlock,
+  TopicsBlock,
+  MeetingBlock,
   Door,
 } from "@/lib/types";
-import { PlayIcon, PlusIcon, StarIcon } from "@/components/icons";
+import { PlayIcon, StarIcon } from "@/components/icons";
 import { PLACEHOLDER_IMG } from "@/lib/blockSchema";
 import { landscape } from "@/lib/landscapes";
 import { useEditing } from "./EditContext";
 import { DoorLink } from "@/components/DoorLink";
 import { StickerBadge } from "@/components/StickerBadge";
-import { TitleMark, TitleUnderline } from "@/components/doodles";
+import { Fix, HandCircle, Note, Polaroid, tilt } from "@/components/paper";
 import { linkHref } from "@/lib/urls";
-import {
-  EditableText,
-  EditableImage,
-  ItemControls,
-  AddItem,
-  EditOnly,
-  StarRating,
-} from "./inline";
+import { EditableText, EditableImage, ItemControls, AddItem, EditOnly } from "./inline";
 
 type Edit<B> = (b: B) => void;
 type BP<B> = { block: B; onChange?: Edit<B> };
@@ -51,121 +47,112 @@ function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   return next;
 }
 
-// заголовок секции (необязательный) — правится инлайн, в view скрыт при пустом.
-// Крупный serif + тёплая чёрточка: страница читается «главами», а не простынёй.
-function SectionTitle({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
+// Заголовок раздела — от руки, как пометка в блокноте
+function SectionTitle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const editing = useEditing();
   if (!editing && !value) return null;
   return (
-    <div className="flex items-center gap-2 pt-2 mb-3 px-1">
-      <TitleMark />
-      <div>
-        <EditableText
-          as="h3"
-          className="font-serif text-[1.45rem] leading-tight text-ink"
-          value={value}
-          onChange={onChange}
-          placeholder="Заголовок"
-        />
-        <TitleUnderline />
-      </div>
-    </div>
+    <EditableText
+      as="h3"
+      className="block hand hand-xl text-ink mb-3 px-1"
+      value={value}
+      onChange={onChange}
+      placeholder="заголовок"
+    />
   );
 }
 
-// [1] Заявление — цветная карточка
+// [1] Цитата-принцип: крупный курсив и подпись от руки
 function Statement({ block, onChange }: BP<StatementBlock>) {
   const set = (p: Partial<StatementBlock>) => onChange?.({ ...block, ...p });
-  const skin =
-    block.color === "moss"
-      ? "bg-moss text-white"
-      : block.color === "deep"
-      ? "bg-deep text-white"
-      : block.color === "soft"
-      ? "bg-soft text-ink"
-      : "bg-card text-ink border border-ink/5";
   return (
-    <div>
-      <ColorSwatches value={block.color ?? "card"} onChange={(c) => set({ color: c })} />
-      <article className={`${skin} rounded-2xl p-6 shadow-sm`}>
-        <EditableText
-          as="p"
-          multiline
-          className="font-serif text-[1.55rem] leading-snug mb-3"
-          value={block.text}
-          onChange={(v) => set({ text: v })}
-          placeholder="Заявление или цитата"
-        />
-        <EditableText
-          as="p"
-          className="opacity-70 text-[13px]"
-          value={block.caption ?? ""}
-          onChange={(v) => set({ caption: v })}
-          placeholder="Подпись (необязательно)"
-        />
-      </article>
-    </div>
+    <section className="relative px-1 pt-3">
+      <span aria-hidden className="absolute -left-1 -top-6 font-serif text-[88px] leading-none text-clay/35 select-none">
+        “
+      </span>
+      <EditableText
+        as="p"
+        multiline
+        className="block font-serif italic text-[1.6rem] leading-[1.2] text-ink pl-4"
+        value={block.text}
+        onChange={(v) => set({ text: v })}
+        placeholder="Ваш главный принцип в работе"
+      />
+      <EditableText
+        as="p"
+        className="block hand hand-md text-sub mt-2 pl-4"
+        value={block.caption ?? ""}
+        onChange={(v) => set({ caption: v })}
+        placeholder="— мой главный принцип"
+      />
+    </section>
   );
 }
 
-const STATEMENT_COLORS: { c: NonNullable<StatementBlock["color"]>; cls: string }[] = [
-  { c: "moss", cls: "bg-moss" },
-  { c: "deep", cls: "bg-deep" },
-  { c: "soft", cls: "bg-soft" },
-  { c: "card", cls: "bg-card border border-ink/15" },
-];
-
-function ColorSwatches({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (c: NonNullable<StatementBlock["color"]>) => void;
-}) {
-  return (
-    <EditOnly>
-      <div className="flex gap-2 mb-2 px-1">
-        {STATEMENT_COLORS.map((o) => (
-          <button
-            key={o.c}
-            type="button"
-            onClick={() => onChange(o.c)}
-            aria-label={o.c}
-            className={`w-6 h-6 rounded-full ${o.cls} ${
-              value === o.c ? "ring-2 ring-offset-2 ring-moss ring-offset-bg" : ""
-            }`}
-          />
-        ))}
-      </div>
-    </EditOnly>
-  );
-}
-
-// [2] Текстовый блок — без карточки, прямо на фоне: даёт ленте дышать
+// [2] Обо мне — как письмо, с буквицей
 function Text({ block, onChange }: BP<TextBlock>) {
   const set = (p: Partial<TextBlock>) => onChange?.({ ...block, ...p });
   return (
-    <article>
+    <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
       <EditableText
         as="p"
         multiline
-        className="block text-ink/80 text-[15px] leading-relaxed px-1"
+        className="block text-ink/85 text-[15px] leading-[1.65] px-1 first-letter:float-left first-letter:font-serif first-letter:text-[3.4rem] first-letter:leading-[.8] first-letter:mr-2 first-letter:mt-1.5 first-letter:text-moss"
         value={block.body}
         onChange={(v) => set({ body: v })}
-        placeholder="Текст блока"
+        placeholder="Расскажите о себе простыми словами — как клиенту, который только зашёл"
       />
-    </article>
+    </section>
   );
 }
 
-// [3] Плитка 2×2 с фото
+// [3] С чем приходят — живые фразы
+function Topics({ block, onChange }: BP<TopicsBlock>) {
+  const editing = useEditing();
+  const set = (p: Partial<TopicsBlock>) => onChange?.({ ...block, ...p });
+  const setItem = (i: number, v: string) => set({ items: block.items.map((t, j) => (j === i ? v : t)) });
+  return (
+    <section>
+      <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
+      <div className="flex flex-wrap gap-2 px-1">
+        {block.items.map((t, i) => (
+          <span key={i} className="group/item relative inline-flex bg-moss/10 text-mossd rounded-full px-3.5 py-1.5 text-[14px]">
+            <EditableText as="span" value={t} onChange={(v) => setItem(i, v)} placeholder="запрос" />
+            {editing && <ItemControls onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })} />}
+          </span>
+        ))}
+      </div>
+      <AddItem label="Добавить запрос" onClick={() => set({ items: [...block.items, "новый запрос"] })} className="mt-3" />
+    </section>
+  );
+}
+
+// [4] Первая встреча — записка на скотче
+function Meeting({ block, onChange }: BP<MeetingBlock>) {
+  const set = (p: Partial<MeetingBlock>) => onChange?.({ ...block, ...p });
+  return (
+    <Note index={2}>
+      <EditableText
+        as="h3"
+        className="block hand hand-xl text-ink"
+        value={block.title ?? ""}
+        onChange={(v) => set({ title: v })}
+        placeholder="как пройдёт первая встреча"
+      />
+      <EditableText
+        as="p"
+        multiline
+        className="block text-sub text-[14.5px] leading-relaxed mt-2"
+        value={block.text}
+        onChange={(v) => set({ text: v })}
+        placeholder="Сколько длится, где, что будет происходить, что если не подойдём друг другу"
+      />
+    </Note>
+  );
+}
+
+// [5] Фото-альбом — полароиды по двое
 function Grid({ block, onChange }: BP<GridBlock>) {
   const set = (p: Partial<GridBlock>) => onChange?.({ ...block, ...p });
   const setItem = (i: number, p: Partial<GridBlock["items"][number]>) =>
@@ -174,22 +161,17 @@ function Grid({ block, onChange }: BP<GridBlock>) {
   return (
     <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-6 px-1 pt-2">
         {block.items.map((it, i) => (
-          <div key={i} className="group/item relative h-32 rounded-2xl overflow-hidden">
-            <EditableImage
-              value={it.img}
+          <div key={i} className="group/item relative">
+            <Polaroid
+              src={it.img}
               onChange={(v) => setItem(i, { img: v })}
-              className="w-full h-full object-cover"
-              alt={it.label}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-deep/85 to-transparent pointer-events-none" />
-            <EditableText
-              as="span"
-              className="absolute bottom-3 left-3 right-3 z-10 text-white font-semibold text-[15px]"
-              value={it.label}
-              onChange={(v) => setItem(i, { label: v })}
-              placeholder="Тема"
+              caption={it.label}
+              onCaption={(v) => setItem(i, { label: v })}
+              index={i}
+              fix={i % 2 === 0}
+              imgClassName="h-32"
             />
             <ItemControls
               onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
@@ -202,17 +184,15 @@ function Grid({ block, onChange }: BP<GridBlock>) {
         ))}
       </div>
       <AddItem
-        label="Добавить тему"
-        onClick={() =>
-          set({ items: [...block.items, { label: "Тема", img: landscape(block.items.length) }] })
-        }
-        className="mt-3"
+        label="Добавить фото"
+        onClick={() => set({ items: [...block.items, { label: "", img: landscape(block.items.length) }] })}
+        className="mt-4"
       />
     </section>
   );
 }
 
-// [4] Видео-визитка
+// [6] Видео — полароид с кнопкой, по клику открывается само видео
 function Video({ block, onChange }: BP<VideoBlock>) {
   const set = (p: Partial<VideoBlock>) => onChange?.({ ...block, ...p });
   const editing = useEditing();
@@ -220,48 +200,49 @@ function Video({ block, onChange }: BP<VideoBlock>) {
   return (
     <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      {/* на публичной странице карточка — ссылка на само видео */}
       {!editing && href && (
         <a href={href} target="_blank" rel="noopener noreferrer" className="sr-only">
           Смотреть видео
         </a>
       )}
-      <article
-        className="relative h-56 rounded-2xl overflow-hidden shadow-sm group cursor-pointer"
+      <figure
+        className="polaroid relative p-2.5 pb-1 mx-1 cursor-pointer group"
+        style={{ transform: `rotate(${tilt(3)}deg)` }}
         onClick={!editing && href ? () => window.open(href, "_blank", "noopener,noreferrer") : undefined}
       >
-        <EditableImage
-          value={block.img}
-          onChange={(v) => set({ img: v })}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-deep/30 pointer-events-none" />
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-            <PlayIcon className="w-6 h-6 text-moss ml-1" />
+        <Fix className="left-1/2 -translate-x-1/2 -top-3" rotate={-3} />
+        <div className="relative h-52 overflow-hidden">
+          <EditableImage value={block.img} onChange={(v) => set({ img: v })} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-deep/20 pointer-events-none" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+              <PlayIcon className="w-6 h-6 text-ink ml-1" />
+            </div>
           </div>
         </div>
-        <EditableText
-          as="p"
-          className="absolute bottom-4 left-4 right-4 z-10 text-white font-medium text-[15px] drop-shadow"
-          value={block.caption ?? ""}
-          onChange={(v) => set({ caption: v })}
-          placeholder="Подпись к видео"
-        />
-      </article>
+        <figcaption className="px-1 pt-1.5 pb-1">
+          <EditableText
+            as="span"
+            className="hand hand-md text-ink"
+            value={block.caption ?? ""}
+            onChange={(v) => set({ caption: v })}
+            placeholder="подпись к видео"
+          />
+        </figcaption>
+      </figure>
       {editing && (
         <input
           value={block.url ?? ""}
           onChange={(e) => set({ url: e.target.value })}
           placeholder="Ссылка на видео: YouTube, VK, Rutube…"
-          className="mt-2 w-full rounded-xl border border-ink/10 bg-card px-3.5 py-2.5 text-[14px] text-ink placeholder:text-sub/50 focus:border-moss outline-none"
+          className="mt-4 w-full rounded-xl border border-ink/10 bg-card px-3.5 py-2.5 text-[14px] text-ink placeholder:text-sub/50 focus:border-moss outline-none"
         />
       )}
     </section>
   );
 }
 
-// [5] Карусель шагов
+// [7] Как проходит работа — тропинка из шагов
 function Steps({ block, onChange }: BP<StepsBlock>) {
   const set = (p: Partial<StepsBlock>) => onChange?.({ ...block, ...p });
   const setItem = (i: number, p: Partial<StepsBlock["items"][number]>) =>
@@ -270,34 +251,226 @@ function Steps({ block, onChange }: BP<StepsBlock>) {
   return (
     <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-1">
+      <ol className="relative px-1 mt-1">
+        {/* пунктирная тропинка за кружками */}
+        <span aria-hidden className="absolute left-[18px] top-4 bottom-4 border-l-2 border-dashed border-sage" />
         {block.items.map((it, i) => (
-          <div
-            key={i}
-            className="group/item relative snap-start shrink-0 w-44 bg-card rounded-2xl p-5 border border-ink/5 shadow-sm"
-          >
-            <EditableText
-              as="div"
-              className="text-clayd font-serif text-3xl mb-2"
-              value={it.n}
-              onChange={(v) => setItem(i, { n: v })}
-              placeholder="01"
+          <li key={i} className="group/item relative flex gap-4 items-start pb-5 last:pb-0">
+            <span className="relative z-10 w-9 h-9 shrink-0 rounded-full bg-card border border-ink/10 flex items-center justify-center">
+              <EditableText
+                as="span"
+                className="hand hand-lg text-clay"
+                value={it.n.replace(/^0+(?=\d)/, "")}
+                onChange={(v) => setItem(i, { n: v })}
+                placeholder="1"
+              />
+            </span>
+            <div className="pt-1 min-w-0 flex-1">
+              <EditableText
+                as="p"
+                className="block font-semibold text-[15px] text-ink"
+                value={it.title}
+                onChange={(v) => setItem(i, { title: v })}
+                placeholder="Шаг"
+              />
+              <EditableText
+                as="p"
+                multiline
+                className="block text-sub text-[13.5px] leading-snug mt-0.5"
+                value={it.text}
+                onChange={(v) => setItem(i, { text: v })}
+                placeholder="Что происходит на этом шаге"
+              />
+            </div>
+            <ItemControls
+              onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
+              onUp={() => set({ items: move(block.items, i, -1) })}
+              onDown={() => set({ items: move(block.items, i, 1) })}
+              first={i === 0}
+              last={i === last}
             />
+          </li>
+        ))}
+      </ol>
+      <AddItem
+        label="Добавить шаг"
+        onClick={() =>
+          set({ items: [...block.items, { n: String(block.items.length + 1), title: "Шаг", text: "Описание шага" }] })
+        }
+        className="mt-3"
+      />
+    </section>
+  );
+}
+
+// [8] Образование — годы на полях, дипломы на скотче, то, что важнее дипломов
+function Education({ block, onChange }: BP<EducationBlock>) {
+  const editing = useEditing();
+  const set = (p: Partial<EducationBlock>) => onChange?.({ ...block, ...p });
+  const setItem = (i: number, p: Partial<EducationBlock["items"][number]>) =>
+    set({ items: block.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
+  const diplomas = block.diplomas ?? [];
+  const trust = block.trust ?? [];
+  const last = block.items.length - 1;
+  return (
+    <section>
+      <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
+      <ul className="space-y-3.5 px-1">
+        {block.items.map((it, i) => (
+          <li key={i} className="group/item relative flex gap-3.5">
             <EditableText
-              as="p"
-              className="font-semibold text-[15px] mb-1"
-              value={it.title}
-              onChange={(v) => setItem(i, { title: v })}
-              placeholder="Шаг"
+              as="span"
+              className="hand hand-lg text-clay w-12 shrink-0 pt-0.5"
+              value={it.year ?? ""}
+              onChange={(v) => setItem(i, { year: v })}
+              placeholder="год"
             />
-            <EditableText
-              as="p"
-              multiline
-              className="text-sub text-[13px] leading-snug"
-              value={it.text}
-              onChange={(v) => setItem(i, { text: v })}
-              placeholder="Описание шага"
+            <div className="min-w-0">
+              <EditableText
+                as="p"
+                className="block font-semibold text-[14.5px] text-ink leading-tight"
+                value={it.place}
+                onChange={(v) => setItem(i, { place: v })}
+                placeholder="Где учились"
+              />
+              <EditableText
+                as="p"
+                className="block text-[13.5px] text-sub mt-0.5"
+                value={it.detail}
+                onChange={(v) => setItem(i, { detail: v })}
+                placeholder="Специальность, программа"
+              />
+            </div>
+            <ItemControls
+              onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
+              onUp={() => set({ items: move(block.items, i, -1) })}
+              onDown={() => set({ items: move(block.items, i, 1) })}
+              first={i === 0}
+              last={i === last}
             />
+          </li>
+        ))}
+      </ul>
+      <AddItem
+        label="Добавить пункт"
+        onClick={() => set({ items: [...block.items, { year: "", place: "Учебное заведение", detail: "Специальность" }] })}
+        className="mt-3"
+      />
+
+      {(trust.length > 0 || editing) && (
+        <div className="mt-4 px-1 space-y-1">
+          {trust.map((t, i) => (
+            <p key={i} className="group/item relative hand hand-md text-mossd flex gap-1.5">
+              <span aria-hidden>✓</span>
+              <EditableText
+                as="span"
+                value={t}
+                onChange={(v) => set({ trust: trust.map((x, j) => (j === i ? v : x)) })}
+                placeholder="хожу на супервизию"
+              />
+              <ItemControls onRemove={() => set({ trust: trust.filter((_, j) => j !== i) })} />
+            </p>
+          ))}
+          <EditOnly>
+            <button
+              type="button"
+              onClick={() => set({ trust: [...trust, "регулярно хожу на супервизию"] })}
+              className="hand hand-md text-moss"
+            >
+              + что ещё важно (супервизия, личная терапия…)
+            </button>
+          </EditOnly>
+        </div>
+      )}
+
+      {(diplomas.length > 0 || editing) && (
+        <div className="flex gap-4 overflow-x-auto no-scrollbar px-2 pt-6 pb-2">
+          {diplomas.map((src, i) => (
+            <div key={i} className="group/item relative shrink-0 w-[104px]">
+              <Polaroid src={src} onChange={(v) => set({ diplomas: diplomas.map((d, j) => (j === i ? v : d)) })} index={i + 1} imgClassName="h-24" />
+              <ItemControls onRemove={() => set({ diplomas: diplomas.filter((_, j) => j !== i) })} />
+            </div>
+          ))}
+          <EditOnly>
+            <button
+              type="button"
+              onClick={() => set({ diplomas: [...diplomas, PLACEHOLDER_IMG] })}
+              className="shrink-0 w-[104px] h-[128px] border-2 border-dashed border-moss/40 text-moss text-[13px] flex items-center justify-center"
+            >
+              + диплом
+            </button>
+          </EditOnly>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// [9] Фото — один полароид с подписью
+function Photo({ block, onChange }: BP<PhotoBlock>) {
+  const set = (p: Partial<PhotoBlock>) => onChange?.({ ...block, ...p });
+  return (
+    <div className="px-6 pt-2">
+      <Polaroid
+        src={block.img}
+        onChange={(v) => set({ img: v })}
+        caption={block.caption}
+        onCaption={(v) => set({ caption: v })}
+        captionPlaceholder="подпись: «мой кабинет»"
+        index={4}
+        imgClassName="h-56"
+      />
+    </div>
+  );
+}
+
+// [10] Цены — меню из кофейни: точки до цены, выгодное обведено от руки
+function Pricing({ block, onChange }: BP<PricingBlock>) {
+  const editing = useEditing();
+  const set = (p: Partial<PricingBlock>) => onChange?.({ ...block, ...p });
+  const setItem = (i: number, p: Partial<PricingBlock["items"][number]>) =>
+    set({ items: block.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
+  const last = block.items.length - 1;
+  return (
+    <Note index={5} fix="center" className="px-5 pt-5">
+      <EditableText
+        as="h3"
+        className="block hand hand-xl text-ink"
+        value={block.title ?? ""}
+        onChange={(v) => set({ title: v })}
+        placeholder="сколько стоит"
+      />
+      <div className="mt-3 space-y-3">
+        {block.items.map((it, i) => (
+          <div key={i} className="group/item relative">
+            <div className="flex items-end">
+              <EditableText as="span" className="text-[15px] text-ink" value={it.name} onChange={(v) => setItem(i, { name: v })} placeholder="Встреча" />
+              <span className="leader" />
+              <span className="relative font-serif text-[22px] font-semibold text-ink whitespace-nowrap">
+                {it.featured && <HandCircle className="absolute -left-3 -top-2 w-[calc(100%+24px)] h-[calc(100%+12px)] text-clay pointer-events-none" />}
+                <EditableText as="span" value={it.price} onChange={(v) => setItem(i, { price: v })} placeholder="0 ₽" />
+              </span>
+            </div>
+            <EditableText as="p" className="block text-[13px] text-sub" value={it.note} onChange={(v) => setItem(i, { note: v })} placeholder="50 минут, онлайн" />
+            {(it.featured || editing) && (
+              <EditableText
+                as="p"
+                className="block hand hand-md text-clay text-right"
+                value={it.badge ?? ""}
+                onChange={(v) => setItem(i, { badge: v })}
+                placeholder="пометка: «выгоднее на 1 500 ₽»"
+              />
+            )}
+            <EditOnly>
+              <button
+                type="button"
+                onClick={() => setItem(i, { featured: !it.featured })}
+                className={`absolute -left-3 top-1 p-1 rounded-full ${it.featured ? "text-clay" : "text-sage"}`}
+                aria-label={it.featured ? "Убрать обводку" : "Обвести от руки"}
+              >
+                <StarIcon className="w-3.5 h-3.5" />
+              </button>
+            </EditOnly>
             <ItemControls
               onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
               onUp={() => set({ items: move(block.items, i, -1) })}
@@ -307,224 +480,29 @@ function Steps({ block, onChange }: BP<StepsBlock>) {
             />
           </div>
         ))}
-        <EditOnly>
-          <div className="snap-start shrink-0 w-44 flex">
-            <AddItem
-              label="Шаг"
-              onClick={() =>
-                set({
-                  items: [
-                    ...block.items,
-                    {
-                      n: String(block.items.length + 1).padStart(2, "0"),
-                      title: "Шаг",
-                      text: "Описание шага",
-                    },
-                  ],
-                })
-              }
-              className="self-center w-full"
-            />
-          </div>
-        </EditOnly>
       </div>
-    </section>
-  );
-}
-
-// [6] Образование и сертификаты
-function Education({ block, onChange }: BP<EducationBlock>) {
-  const editing = useEditing();
-  const set = (p: Partial<EducationBlock>) => onChange?.({ ...block, ...p });
-  const setItem = (i: number, p: Partial<EducationBlock["items"][number]>) =>
-    set({ items: block.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
-  const diplomas = block.diplomas ?? [];
-  const setDiploma = (i: number, v: string) =>
-    set({ diplomas: diplomas.map((d, j) => (j === i ? v : d)) });
-  const last = block.items.length - 1;
-  return (
-    <section>
-      <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <article className="bg-card rounded-2xl p-5 border border-ink/5 shadow-sm mb-3">
-        <ol className="relative border-l border-sage/40 ml-1 space-y-5">
-          {block.items.map((it, i) => (
-            <li key={i} className="group/item pl-5 relative">
-              <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-moss" />
-              <EditableText
-                as="p"
-                className="text-[15px] font-semibold text-ink leading-tight"
-                value={it.place}
-                onChange={(v) => setItem(i, { place: v })}
-                placeholder="Где / что"
-              />
-              <EditableText
-                as="p"
-                className="text-[13px] text-sub"
-                value={it.detail}
-                onChange={(v) => setItem(i, { detail: v })}
-                placeholder="Специальность · год"
-              />
-              <ItemControls
-                onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
-                onUp={() => set({ items: move(block.items, i, -1) })}
-                onDown={() => set({ items: move(block.items, i, 1) })}
-                first={i === 0}
-                last={i === last}
-              />
-            </li>
-          ))}
-        </ol>
-        <AddItem
-          label="Добавить пункт"
-          onClick={() =>
-            set({
-              items: [...block.items, { place: "Учебное заведение", detail: "Специальность · год" }],
-            })
-          }
-          className="mt-4"
-        />
-      </article>
-      {(editing || diplomas.length > 0) && (
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-          {diplomas.map((src, i) => (
-            <div key={i} className="group/item relative shrink-0">
-              <EditableImage
-                value={src}
-                onChange={(v) => setDiploma(i, v)}
-                className="w-28 h-36 object-cover rounded-xl border border-ink/5 shadow-sm"
-              />
-              <ItemControls onRemove={() => set({ diplomas: diplomas.filter((_, j) => j !== i) })} />
-            </div>
-          ))}
-          <EditOnly>
-            <button
-              type="button"
-              onClick={() => set({ diplomas: [...diplomas, PLACEHOLDER_IMG] })}
-              className="shrink-0 w-28 h-36 rounded-xl border border-dashed border-moss/40 text-moss text-[13px] flex items-center justify-center"
-            >
-              + скан
-            </button>
-          </EditOnly>
-        </div>
-      )}
-    </section>
-  );
-}
-
-// [7] Фото-пост
-function Photo({ block, onChange }: BP<PhotoBlock>) {
-  const editing = useEditing();
-  const set = (p: Partial<PhotoBlock>) => onChange?.({ ...block, ...p });
-  return (
-    <article className="bg-card rounded-2xl overflow-hidden border border-ink/5 shadow-sm">
-      <div className="relative">
-        <EditableImage
-          value={block.img}
-          onChange={(v) => set({ img: v })}
-          className="w-full h-48 object-cover"
-        />
-      </div>
-      {(editing || block.caption) && (
-        <div className="p-5">
+      <AddItem
+        label="Добавить строку"
+        onClick={() => set({ items: [...block.items, { name: "Встреча", price: "0 ₽", note: "", featured: false }] })}
+        className="mt-3"
+      />
+      {(block.terms || editing) && (
+        <div className="border-t border-dashed border-ink/15 mt-4 pt-3">
           <EditableText
             as="p"
             multiline
-            className="text-ink/80 text-[15px] leading-relaxed"
-            value={block.caption ?? ""}
-            onChange={(v) => set({ caption: v })}
-            placeholder="Подпись к фото"
+            className="block hand hand-md text-sub"
+            value={block.terms ?? ""}
+            onChange={(v) => set({ terms: v })}
+            placeholder="оплата после встречи · перенос за сутки — бесплатно"
           />
         </div>
       )}
-    </article>
+    </Note>
   );
 }
 
-// [8] Тарифы
-function Pricing({ block, onChange }: BP<PricingBlock>) {
-  const set = (p: Partial<PricingBlock>) => onChange?.({ ...block, ...p });
-  const setItem = (i: number, p: Partial<PricingBlock["items"][number]>) =>
-    set({ items: block.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
-  const remove = (i: number) => set({ items: block.items.filter((_, j) => j !== i) });
-  const last = block.items.length - 1;
-  return (
-    <section>
-      <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <div className="grid grid-cols-2 gap-3">
-        {block.items.map((it, i) => {
-          const featured = it.featured;
-          return (
-            <article
-              key={i}
-              className={`group/item relative rounded-2xl p-5 shadow-cozy ${
-                featured ? "bg-moss text-white" : "bg-card text-ink border border-ink/5"
-              }`}
-            >
-              {featured && (
-                <EditableText
-                  as="span"
-                  className="absolute top-3 right-3 z-10 text-[10px] font-semibold bg-clay text-white px-2 py-0.5 rounded-full"
-                  value={it.badge ?? ""}
-                  onChange={(v) => setItem(i, { badge: v })}
-                  placeholder="бейдж"
-                />
-              )}
-              <EditableText
-                as="p"
-                className="text-[14px] font-semibold mb-1"
-                value={it.name}
-                onChange={(v) => setItem(i, { name: v })}
-                placeholder="Тариф"
-              />
-              <EditableText
-                as="p"
-                className={`font-serif text-3xl mb-1 ${featured ? "" : "text-moss"}`}
-                value={it.price}
-                onChange={(v) => setItem(i, { price: v })}
-                placeholder="0 ₽"
-              />
-              <EditableText
-                as="p"
-                className={`text-[13px] ${featured ? "text-white/70" : "text-sub"}`}
-                value={it.note}
-                onChange={(v) => setItem(i, { note: v })}
-                placeholder="Описание"
-              />
-              <EditOnly>
-                <button
-                  type="button"
-                  onClick={() => setItem(i, { featured: !featured })}
-                  className={`absolute bottom-2 right-2 z-10 p-1.5 rounded-full ${
-                    featured ? "bg-white/20 text-white" : "bg-clay/10 text-clay"
-                  }`}
-                  aria-label={featured ? "Снять выделение" : "Выделить тариф"}
-                >
-                  <StarIcon className="w-3.5 h-3.5" />
-                </button>
-              </EditOnly>
-              <ItemControls
-                onRemove={() => remove(i)}
-                onUp={() => set({ items: move(block.items, i, -1) })}
-                onDown={() => set({ items: move(block.items, i, 1) })}
-                first={i === 0}
-                last={i === last}
-              />
-            </article>
-          );
-        })}
-      </div>
-      <AddItem
-        label="Добавить тариф"
-        onClick={() =>
-          set({ items: [...block.items, { name: "Тариф", price: "0 ₽", note: "", featured: false }] })
-        }
-        className="mt-3"
-      />
-    </section>
-  );
-}
-
-// [9] Частые вопросы
+// [11] Вопросы — пунктир и плюсики от руки
 function Faq({ block, onChange }: BP<FaqBlock>) {
   const editing = useEditing();
   const set = (p: Partial<FaqBlock>) => onChange?.({ ...block, ...p });
@@ -534,29 +512,12 @@ function Faq({ block, onChange }: BP<FaqBlock>) {
   return (
     <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <div className="space-y-2">
+      <div className="px-1">
         {block.items.map((it, i) =>
           editing ? (
-            // в правке — оба поля открыты, без сворачивания
-            <div
-              key={i}
-              className="group/item relative bg-card rounded-2xl border border-ink/5 shadow-sm p-4"
-            >
-              <EditableText
-                as="p"
-                className="text-[15px] font-medium mb-2 pr-6"
-                value={it.q}
-                onChange={(v) => setItem(i, { q: v })}
-                placeholder="Вопрос"
-              />
-              <EditableText
-                as="p"
-                multiline
-                className="text-sub text-[14px] leading-relaxed"
-                value={it.a}
-                onChange={(v) => setItem(i, { a: v })}
-                placeholder="Ответ"
-              />
+            <div key={i} className="group/item relative py-3 border-b-[1.5px] border-dashed border-ink/15">
+              <EditableText as="p" className="block font-serif text-[19px] font-semibold text-ink pr-6" value={it.q} onChange={(v) => setItem(i, { q: v })} placeholder="Вопрос" />
+              <EditableText as="p" multiline className="block text-sub text-[14px] leading-relaxed mt-1" value={it.a} onChange={(v) => setItem(i, { a: v })} placeholder="Ответ" />
               <ItemControls
                 onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
                 onUp={() => set({ items: move(block.items, i, -1) })}
@@ -566,31 +527,23 @@ function Faq({ block, onChange }: BP<FaqBlock>) {
               />
             </div>
           ) : (
-            <details
-              key={i}
-              className="group bg-card rounded-2xl border border-ink/5 shadow-sm overflow-hidden"
-            >
-              <summary className="flex justify-between items-center p-4 cursor-pointer text-[15px] font-medium">
-                {it.q}
-                <span className="text-sage group-open:rotate-45 transition-transform shrink-0 ml-3">
-                  <PlusIcon className="w-4 h-4" />
-                </span>
+            <details key={i} className="group py-3 border-b-[1.5px] border-dashed border-ink/15">
+              <summary className="flex justify-between items-start gap-3 cursor-pointer">
+                <span className="font-serif text-[19px] font-semibold text-ink leading-snug">{it.q}</span>
+                <span className="hand hand-xl text-clay leading-none group-open:hidden">+</span>
+                <span className="hand hand-xl text-clay leading-none hidden group-open:inline">−</span>
               </summary>
-              <p className="px-4 pb-4 text-sub text-[14px] leading-relaxed">{it.a}</p>
+              <p className="text-sub text-[14px] leading-relaxed mt-1.5">{it.a}</p>
             </details>
           )
         )}
       </div>
-      <AddItem
-        label="Добавить вопрос"
-        onClick={() => set({ items: [...block.items, { q: "Вопрос?", a: "Ответ." }] })}
-        className="mt-2"
-      />
+      <AddItem label="Добавить вопрос" onClick={() => set({ items: [...block.items, { q: "Вопрос?", a: "Ответ." }] })} className="mt-3" />
     </section>
   );
 }
 
-// [10] Отзывы
+// [12] Отзывы — записки разного цвета, лесенкой
 function Reviews({ block, onChange }: BP<ReviewsBlock>) {
   const set = (p: Partial<ReviewsBlock>) => onChange?.({ ...block, ...p });
   const setItem = (i: number, p: Partial<ReviewsBlock["items"][number]>) =>
@@ -599,32 +552,26 @@ function Reviews({ block, onChange }: BP<ReviewsBlock>) {
   return (
     <section>
       <SectionTitle value={block.title ?? ""} onChange={(v) => set({ title: v })} />
-      <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-1">
+      <div className="space-y-6 pt-2">
         {block.items.map((it, i) => (
-          <article
-            key={i}
-            className="group/item relative snap-start shrink-0 w-[78%] bg-soft rounded-2xl p-5"
-          >
-            <StarRating
-              value={it.stars}
-              onChange={(v) => setItem(i, { stars: v })}
-              className="text-clay mb-3"
-            />
-            <EditableText
-              as="p"
-              multiline
-              className="text-ink/85 text-[15px] leading-relaxed mb-4"
-              value={it.text}
-              onChange={(v) => setItem(i, { text: v })}
-              placeholder="Текст отзыва"
-            />
-            <EditableText
-              as="p"
-              className="text-[13px] font-semibold text-ink"
-              value={it.author}
-              onChange={(v) => setItem(i, { author: v })}
-              placeholder="Имя, возраст"
-            />
+          <div key={i} className={`group/item relative w-[86%] ${i % 2 ? "ml-auto" : ""}`}>
+            <Note index={i * 3 + 1} tone={i % 2 ? "note" : "note2"} fix={i % 2 ? "right" : "left"}>
+              <EditableText
+                as="p"
+                multiline
+                className="block font-serif italic text-[17.5px] leading-snug text-ink"
+                value={it.text}
+                onChange={(v) => setItem(i, { text: v })}
+                placeholder="Текст отзыва"
+              />
+              <EditableText
+                as="p"
+                className="block hand hand-md text-ink mt-2"
+                value={it.author}
+                onChange={(v) => setItem(i, { author: v })}
+                placeholder="— Имя, возраст"
+              />
+            </Note>
             <ItemControls
               onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })}
               onUp={() => set({ items: move(block.items, i, -1) })}
@@ -632,101 +579,77 @@ function Reviews({ block, onChange }: BP<ReviewsBlock>) {
               first={i === 0}
               last={i === last}
             />
-          </article>
-        ))}
-        <EditOnly>
-          <div className="snap-start shrink-0 w-[78%] flex">
-            <AddItem
-              label="отзыв"
-              onClick={() =>
-                set({ items: [...block.items, { stars: 5, text: "Текст отзыва", author: "Имя" }] })
-              }
-              className="w-full flex items-center justify-center"
-            />
           </div>
-        </EditOnly>
+        ))}
       </div>
+      <AddItem
+        label="Добавить отзыв"
+        onClick={() => set({ items: [...block.items, { stars: 5, text: "Текст отзыва", author: "— Имя" }] })}
+        className="mt-4"
+      />
     </section>
   );
 }
 
-// [11] Мета-полоска
+// [13] Факты — почтовые штампы
 function Meta({ block, onChange }: BP<MetaBlock>) {
   const set = (p: Partial<MetaBlock>) => onChange?.({ ...block, ...p });
   const setItem = (i: number, p: Partial<MetaBlock["items"][number]>) =>
     set({ items: block.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
   return (
-    <article className="bg-soft rounded-2xl p-5">
-      <div className="grid grid-cols-3 gap-2 text-center">
+    <section>
+      <div className="flex flex-wrap justify-center gap-3.5">
         {block.items.map((it, i) => (
-          <div key={i} className={`group/item relative ${i === 1 ? "border-x border-ink/10" : ""}`}>
-            <EditableText
-              as="p"
-              className="font-serif text-2xl text-moss"
-              value={it.value}
-              onChange={(v) => setItem(i, { value: v })}
-              placeholder="0"
-            />
-            <EditableText
-              as="p"
-              className="text-[12px] text-sub"
-              value={it.label}
-              onChange={(v) => setItem(i, { label: v })}
-              placeholder="метрика"
-            />
-            {block.items.length > 1 && (
-              <ItemControls onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })} />
-            )}
+          <div
+            key={i}
+            className="group/item relative w-[98px] h-[98px] rounded-full border-2 border-dashed border-moss/50 bg-card/40 flex flex-col items-center justify-center text-center"
+            style={{ transform: `rotate(${tilt(i) * 3}deg)` }}
+          >
+            <EditableText as="span" className="font-serif text-[26px] leading-none text-ink" value={it.value} onChange={(v) => setItem(i, { value: v })} placeholder="50" />
+            <EditableText as="span" className="hand hand-sm text-sub" value={it.label} onChange={(v) => setItem(i, { label: v })} placeholder="минут" />
+            {block.items.length > 1 && <ItemControls onRemove={() => set({ items: block.items.filter((_, j) => j !== i) })} />}
           </div>
         ))}
       </div>
-      <AddItem
-        label="метрику"
-        onClick={() => set({ items: [...block.items, { value: "0", label: "метрика" }] })}
-        className="mt-3"
-      />
-    </article>
+      <AddItem label="Добавить штамп" onClick={() => set({ items: [...block.items, { value: "1×", label: "в неделю" }] })} className="mt-4" />
+    </section>
   );
 }
 
-// [12] Финальный блок-контакт
-function Cta({
-  block,
-  doors,
-  onChange,
-}: {
-  block: CtaBlock;
-  doors: { book: Door; message: Door };
-  onChange?: Edit<CtaBlock>;
-}) {
+// [14] Финал — конверт с подписью
+function Cta({ block, doors, owner, onChange }: { block: CtaBlock; doors: { book: Door; message: Door }; owner?: string; onChange?: Edit<CtaBlock> }) {
   const set = (p: Partial<CtaBlock>) => onChange?.({ ...block, ...p });
   return (
-    <article className="bg-deep text-white rounded-2xl p-6 text-center shadow-cozy-lg">
+    <article className="relative overflow-hidden rounded-[20px] bg-final text-final-ink px-5 pt-10 pb-5">
+      <svg aria-hidden className="absolute inset-x-0 top-0 w-full h-14 opacity-25" viewBox="0 0 342 56" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M0 0l171 48L342 0" />
+      </svg>
       <EditableText
         as="p"
-        className="font-serif text-[1.6rem] leading-snug mb-2"
+        className="block font-serif text-[1.7rem] leading-[1.15]"
         value={block.title}
         onChange={(v) => set({ title: v })}
-        placeholder="Заголовок"
+        placeholder="Если откликнулось — напишите"
       />
       <EditableText
         as="p"
         multiline
-        className="text-white/65 text-[14px] leading-relaxed mb-5"
+        className="block text-[14px] leading-relaxed opacity-75 mt-2"
         value={block.text}
         onChange={(v) => set({ text: v })}
-        placeholder="Короткий текст"
+        placeholder="Можно просто написать «здравствуйте»"
       />
-      <div className="flex gap-2.5">
+      <div className="flex gap-2.5 mt-5">
         <DoorLink
           door={doors.book}
-          className="flex-1 text-center bg-moss text-white py-3 rounded-xl font-semibold text-[15px] hover:bg-mossd transition-colors"
+          className="flex-1 text-center btn-shape bg-final-btn text-final py-3 font-semibold text-[15px] hover:opacity-90 transition"
         />
         <DoorLink
           door={doors.message}
-          className="flex-1 text-center bg-white/10 backdrop-blur border border-white/15 text-white py-3 rounded-xl font-semibold text-[15px] hover:bg-white/20 transition-colors"
+          className="flex-1 text-center btn-shape border-[1.5px] border-final-ink/40 py-3 font-semibold text-[15px] hover:bg-white/5 transition"
         />
       </div>
+      {owner && <p className="hand hand-xl text-right mt-4">— {owner}</p>}
     </article>
   );
 }
@@ -735,15 +658,17 @@ function Cta({
 export function BlockRenderer({
   block,
   doors,
+  owner,
   onChange,
 }: {
   block: Block;
   doors: { book: Door; message: Door };
+  owner?: string; // имя для подписи «— Катя» в финале
   onChange?: Edit<Block>;
 }) {
   return (
     <div className="relative">
-      <BlockBody block={block} doors={doors} onChange={onChange} />
+      <BlockBody block={block} doors={doors} owner={owner} onChange={onChange} />
       <StickerBadge sticker={block.sticker} />
     </div>
   );
@@ -752,10 +677,12 @@ export function BlockRenderer({
 function BlockBody({
   block,
   doors,
+  owner,
   onChange,
 }: {
   block: Block;
   doors: { book: Door; message: Door };
+  owner?: string;
   onChange?: Edit<Block>;
 }) {
   switch (block.type) {
@@ -763,6 +690,10 @@ function BlockBody({
       return <Statement block={block} onChange={onChange} />;
     case "text":
       return <Text block={block} onChange={onChange} />;
+    case "topics":
+      return <Topics block={block} onChange={onChange} />;
+    case "meeting":
+      return <Meeting block={block} onChange={onChange} />;
     case "grid":
       return <Grid block={block} onChange={onChange} />;
     case "video":
@@ -782,6 +713,6 @@ function BlockBody({
     case "meta":
       return <Meta block={block} onChange={onChange} />;
     case "cta":
-      return <Cta block={block} doors={doors} onChange={onChange} />;
+      return <Cta block={block} doors={doors} owner={owner} onChange={onChange} />;
   }
 }

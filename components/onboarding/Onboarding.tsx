@@ -6,6 +6,7 @@ import {
   METHODS,
   TOPIC_LIST,
   ABOUT_TAGS,
+  NOTE_PRESETS,
   emptyAnswers,
   composeBio,
   buildStarterProfile,
@@ -14,6 +15,7 @@ import {
 import { ImageInput } from "@/components/editor/ImageInput";
 import { LeafIcon, SparkleIcon } from "@/components/icons";
 import { OnboardingPreview } from "./OnboardingPreview";
+import { ThemePicker } from "@/components/editor/ThemePicker";
 
 const input =
   "w-full rounded-2xl border border-ink/10 bg-card px-4 py-3.5 text-[16px] text-ink placeholder:text-sub/45 shadow-cozy focus:border-moss/50 focus:ring-4 focus:ring-moss/12 outline-none transition";
@@ -25,7 +27,9 @@ const STEPS = [
   "methods",
   "topics",
   "about",
+  "note",
   "details",
+  "theme",
   "reveal",
 ] as const;
 type Step = (typeof STEPS)[number];
@@ -39,6 +43,7 @@ const FOCUS: Partial<Record<Step, string>> = {
   methods: "methods",
   topics: "topics",
   about: "about",
+  note: "note",
   details: "price",
 };
 
@@ -88,7 +93,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   // ── intro: тёплый вход с фото-героем сверху ──
   if (isIntro) {
     return (
-      <div className="min-h-screen bg-cozy flex flex-col">
+      <div className="min-h-screen paper flex flex-col">
         {/* уютное фото сверху — тёплые листья на солнце (фото: Hana Kirana, CC BY 2.0) */}
         <div className="relative h-[42vh] min-h-[260px] w-full overflow-hidden">
           <div
@@ -123,7 +128,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
         <div className="max-w-[460px] w-full mx-auto px-6 pb-10 pt-4">
           <button
             onClick={() => go(1)}
-            className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
+            className="w-full bg-moss text-btn-ink py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
           >
             Поехали
           </button>
@@ -135,7 +140,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   // ── reveal: финальная подача готовой страницы ──
   if (isReveal) {
     return (
-      <div className="min-h-screen bg-cozy flex flex-col">
+      <div className="min-h-screen paper flex flex-col">
         <div className="grow flex flex-col justify-center py-6 float-up">
           <div className="text-center px-6 mb-3">
             <SparkleIcon className="w-9 h-9 text-clay mx-auto mb-3" />
@@ -151,7 +156,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
         <div className="max-w-[460px] w-full mx-auto px-6 pb-10 pt-2">
           <button
             onClick={finish}
-            className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
+            className="w-full bg-moss text-btn-ink py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition"
           >
             Хочу подправить →
           </button>
@@ -167,7 +172,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
   const last = step === STEPS.length - 2; // "details" — последний вопрос
   return (
     <div
-      className="fixed inset-x-0 top-0 z-10 bg-cozy flex flex-col overflow-hidden"
+      className="fixed inset-x-0 top-0 z-10 paper flex flex-col overflow-hidden"
       style={{
         height: vp ? vp.height : "100dvh",
         transform: vp ? `translateY(${vp.offsetTop}px)` : undefined,
@@ -245,8 +250,41 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
           <AboutStep a={a} set={set} toggle={(v) => toggle("aboutTags", v)} />
         )}
 
+        {cur === "note" && (
+          <Q
+            title="Пара слов клиенту"
+            sub="Это первое, что прочитает человек, которому сейчас непросто. Выберите близкий вариант и поправьте под себя."
+          >
+            <div className="space-y-2.5">
+              {NOTE_PRESETS.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => set({ note: n })}
+                  className={`w-full text-left rounded-2xl border px-4 py-3 transition ${
+                    a.note === n ? "border-moss bg-moss/10" : "border-ink/10 bg-card hover:border-moss/40"
+                  }`}
+                >
+                  <span className="hand hand-lg text-ink leading-snug">{n}</span>
+                </button>
+              ))}
+              <textarea
+                className={`${input} min-h-24`}
+                placeholder="Или напишите своё"
+                value={a.note}
+                onChange={(e) => set({ note: e.target.value })}
+              />
+            </div>
+          </Q>
+        )}
+
+        {cur === "theme" && (
+          <Q title="Какое настроение у страницы?" sub="Бумага, почерк и мелочи вроде скотча или скрепок. Поменять можно в любой момент.">
+            <ThemePicker value={a.theme} onChange={(theme) => set({ theme })} />
+          </Q>
+        )}
+
         {cur === "details" && (
-          <Q title="Формат и связь" sub="Последний шаг. Всё необязательно — можно заполнить потом.">
+          <Q title="Формат и связь" sub="Всё необязательно — можно заполнить потом.">
             <div className="space-y-5">
               <div>
                 <p className="text-[13px] font-medium text-sub mb-2">Формат</p>
@@ -300,7 +338,7 @@ export function Onboarding({ onDone }: { onDone: (p: Profile) => void }) {
           <button
             onClick={() => go(1)}
             disabled={!canNext}
-            className="grow bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition disabled:opacity-45 disabled:shadow-cozy"
+            className="grow bg-moss text-btn-ink py-4 rounded-2xl font-semibold text-[16px] shadow-cozy-lg hover:bg-mossd active:scale-[.99] transition disabled:opacity-45 disabled:shadow-cozy"
           >
             {last ? "Готово" : "Далее"}
           </button>
@@ -450,7 +488,7 @@ function Chips({
             onClick={() => onToggle(o)}
             className={`px-4 py-2.5 rounded-full text-[15px] font-medium border transition active:scale-[.97] ${
               on
-                ? "bg-moss text-white border-moss shadow-cozy"
+                ? "bg-moss text-btn-ink border-moss shadow-cozy"
                 : "bg-card text-ink border-ink/10 shadow-cozy hover:border-moss/40"
             }`}
           >

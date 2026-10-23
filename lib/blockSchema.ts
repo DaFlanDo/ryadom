@@ -35,18 +35,20 @@ export const BLOCK_LIBRARY: {
   label: string;
   hint: string;
 }[] = [
-  { type: "statement", label: "Заявление", hint: "Цветная карточка с цитатой" },
-  { type: "text", label: "Текст", hint: "Заголовок и абзац" },
-  { type: "grid", label: "Галерея тем", hint: "Плитка 2×2 с фото" },
-  { type: "video", label: "Видео-визитка", hint: "Видео с обложкой" },
-  { type: "steps", label: "Шаги", hint: "Карусель этапов работы" },
-  { type: "education", label: "Образование", hint: "Таймлайн и дипломы" },
-  { type: "photo", label: "Фото-пост", hint: "Фото с подписью" },
-  { type: "pricing", label: "Тарифы", hint: "Карточки с ценами" },
-  { type: "faq", label: "Вопросы", hint: "Раскрывающиеся ответы" },
-  { type: "reviews", label: "Отзывы", hint: "Карусель отзывов" },
-  { type: "meta", label: "Цифры", hint: "Полоска из трёх метрик" },
-  { type: "cta", label: "Призыв", hint: "Финальный блок с кнопками" },
+  { type: "topics", label: "С чем приходят", hint: "Запросы живыми фразами" },
+  { type: "meeting", label: "Первая встреча", hint: "Как она пройдёт — снимает страх" },
+  { type: "text", label: "Обо мне", hint: "Текст как письмо" },
+  { type: "statement", label: "Цитата", hint: "Ваш главный принцип" },
+  { type: "steps", label: "Как проходит работа", hint: "Шаги-тропинка" },
+  { type: "education", label: "Образование", hint: "Годы, дипломы, супервизия" },
+  { type: "pricing", label: "Цены", hint: "Как меню в кофейне" },
+  { type: "faq", label: "Вопросы", hint: "О чём часто спрашивают" },
+  { type: "reviews", label: "Отзывы", hint: "Записки от клиентов" },
+  { type: "photo", label: "Фото", hint: "Полароид с подписью" },
+  { type: "grid", label: "Фото-альбом", hint: "Несколько полароидов" },
+  { type: "video", label: "Видео", hint: "Ссылка на видео о себе" },
+  { type: "meta", label: "Факты", hint: "Три штампа: время, формат…" },
+  { type: "cta", label: "Финал", hint: "«Если откликнулось — напишите»" },
 ];
 
 // ── Схемы полей по типу блока ──
@@ -116,11 +118,13 @@ export const BLOCK_SCHEMAS: Record<BlockType, Field[]> = {
       addLabel: "Добавить пункт",
       defaultItem: () => ({ place: "Учебное заведение", detail: "Специальность · год" }),
       itemFields: [
+        { key: "year", label: "Год", kind: "text", ph: "2014" },
         { key: "place", label: "Где / что", kind: "text" },
         { key: "detail", label: "Детали", kind: "text" },
       ],
     },
     { key: "diplomas", label: "Сканы дипломов", kind: "stringlist", image: true, addLabel: "Добавить скан" },
+    { key: "trust", label: "Что ещё важно", kind: "stringlist", addLabel: "Добавить строку", hint: "Например: «хожу на супервизию», «прохожу личную терапию»" },
   ],
   photo: [
     { key: "img", label: "Фото", kind: "image" },
@@ -139,10 +143,11 @@ export const BLOCK_SCHEMAS: Record<BlockType, Field[]> = {
         { key: "name", label: "Название", kind: "text" },
         { key: "price", label: "Цена", kind: "text" },
         { key: "note", label: "Подпись", kind: "text" },
-        { key: "featured", label: "Выделить (зелёным)", kind: "toggle" },
-        { key: "badge", label: "Бейдж (напр. «выгодно»)", kind: "text" },
+        { key: "featured", label: "Обвести от руки", kind: "toggle" },
+        { key: "badge", label: "Пометка рукой (напр. «выгоднее на 1 500 ₽»)", kind: "text" },
       ],
     },
+    { key: "terms", label: "Условия", kind: "textarea", ph: "оплата после встречи · перенос за сутки — бесплатно" },
   ],
   faq: [
     { key: "title", label: "Заголовок", kind: "text" },
@@ -192,6 +197,14 @@ export const BLOCK_SCHEMAS: Record<BlockType, Field[]> = {
   cta: [
     { key: "title", label: "Заголовок", kind: "text" },
     { key: "text", label: "Текст", kind: "textarea" },
+  ],
+  topics: [
+    { key: "title", label: "Заголовок", kind: "text", ph: "с чем ко мне приходят" },
+    { key: "items", label: "Запросы", kind: "stringlist", addLabel: "Добавить запрос", hint: "Живыми словами: «тревога, которая не отпускает», «со мной что-то не так»" },
+  ],
+  meeting: [
+    { key: "title", label: "Заголовок", kind: "text", ph: "как пройдёт первая встреча" },
+    { key: "text", label: "Текст", kind: "textarea", ph: "50 минут по видео. Вы рассказываете, что беспокоит…" },
   ],
 };
 
@@ -252,7 +265,23 @@ export function createBlock(type: BlockType): Block {
         ],
       };
     case "cta":
-      return { type, title: "С чего начать — решаешь ты", text: "Запишись или просто напиши." };
+      return {
+        type,
+        title: "Если откликнулось — напишите",
+        text: "Можно сразу записаться, а можно просто написать «здравствуйте» — это ни к чему не обязывает.",
+      };
+    case "topics":
+      return {
+        type,
+        title: "с чем ко мне приходят",
+        items: ["тревога, которая не отпускает", "выгорание", "«со мной что-то не так»"],
+      };
+    case "meeting":
+      return {
+        type,
+        title: "как пройдёт первая встреча",
+        text: "50 минут по видео. Вы рассказываете, что беспокоит, — сколько захотите. Я задаю вопросы и в конце говорю, как вижу нашу работу. Если не подойдём друг другу — это нормально, помогу найти другого специалиста.",
+      };
   }
 }
 

@@ -11,7 +11,7 @@ export type StickerCorner = "tl" | "tr" | "bl" | "br";
 export type Sticker = { id: StickerId; corner: StickerCorner };
 type Decor = { sticker?: Sticker };
 
-export type ThemeId = "moss" | "clay" | "dusk";
+export type ThemeId = "note" | "notebook" | "herbarium" | "evening";
 
 export type StatementBlock = Decor & {
   type: "statement";
@@ -49,8 +49,9 @@ export type StepsBlock = Decor & {
 export type EducationBlock = Decor & {
   type: "education";
   title?: string;
-  items: { place: string; detail: string }[];
+  items: { place: string; detail: string; year?: string }[];
   diplomas?: string[];
+  trust?: string[]; // «хожу на супервизию», «прохожу личную терапию»
 };
 
 export type PhotoBlock = Decor & {
@@ -69,6 +70,7 @@ export type PricingBlock = Decor & {
     featured?: boolean;
     badge?: string;
   }[];
+  terms?: string; // «оплата после встречи · перенос за сутки — бесплатно»
 };
 
 export type FaqBlock = Decor & {
@@ -94,6 +96,20 @@ export type CtaBlock = Decor & {
   text: string;
 };
 
+// «С чем ко мне приходят» — живые фразы, а не плитка с фото
+export type TopicsBlock = Decor & {
+  type: "topics";
+  title?: string;
+  items: string[];
+};
+
+// «Как пройдёт первая встреча» — снимает главный страх клиента
+export type MeetingBlock = Decor & {
+  type: "meeting";
+  title?: string;
+  text: string;
+};
+
 export type Block =
   | StatementBlock
   | TextBlock
@@ -106,7 +122,9 @@ export type Block =
   | FaqBlock
   | ReviewsBlock
   | MetaBlock
-  | CtaBlock;
+  | CtaBlock
+  | TopicsBlock
+  | MeetingBlock;
 
 export type BlockType = Block["type"];
 
@@ -133,12 +151,15 @@ export type ProfileHeader = {
   avatar: string;
   cover: string;
   status: string;
-  meta: string[]; // первое слово каждой строки выделяется жирным
+  meta: string[]; // факты: «8 лет практики», «онлайн»…
   sticker?: Sticker;
+  hello?: string; // «привет, я Катя»; нет поля — собирается из имени
+  note?: string; // «пара слов от меня» — записка под шапкой
+  replyHint?: string; // «отвечаю обычно в течение дня»
 };
 
 export type Profile = {
-  theme?: ThemeId; // нет поля = "moss"
+  theme?: ThemeId; // нет поля = "note"
   header: ProfileHeader;
   highlights: Highlight[];
   blocks: Block[];

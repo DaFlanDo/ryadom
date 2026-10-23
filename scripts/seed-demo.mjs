@@ -1,6 +1,6 @@
 // Демо-страница ryadom.app/demo из supabase/demo-profile.json.
 // У демо-аккаунта нет пароля, поэтому войти и изменить его нельзя.
-// Запуск: npm run seed:demo [moss|clay|dusk] (ключи берутся из .env).
+// Запуск: npm run seed:demo [note|notebook|herbarium|evening] (ключи берутся из .env).
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
@@ -11,7 +11,7 @@ if (!url || !key) throw new Error("Нужны NEXT_PUBLIC_SUPABASE_URL и SUPABA
 const profile = JSON.parse(await readFile(new URL("../supabase/demo-profile.json", import.meta.url), "utf8"));
 const theme = process.argv[2];
 if (theme) {
-  if (!["moss", "clay", "dusk"].includes(theme)) throw new Error(`Неизвестная тема: ${theme}`);
+  if (!["note", "notebook", "herbarium", "evening"].includes(theme)) throw new Error(`Неизвестная тема: ${theme}`);
   profile.theme = theme;
 }
 const db = createClient(url, key, { auth: { persistSession: false } });

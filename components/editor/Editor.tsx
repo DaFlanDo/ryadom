@@ -18,6 +18,8 @@ import {
   TrashIcon,
 } from "@/components/icons";
 import { ThemeScope } from "@/components/ThemeScope";
+import { Divider } from "@/components/paper";
+import { ownerName } from "@/components/Profile";
 import { DEFAULT_THEME } from "@/lib/themes";
 import { EditProvider } from "@/components/blocks/EditContext";
 import { Onboarding } from "@/components/onboarding/Onboarding";
@@ -303,7 +305,7 @@ export function Editor() {
             {myHandle && (
               <button
                 onClick={shareLink}
-                className="text-[13px] font-semibold text-white bg-moss px-3.5 py-1.5 rounded-lg whitespace-nowrap"
+                className="text-[13px] font-semibold text-btn-ink bg-moss px-3.5 py-1.5 rounded-lg whitespace-nowrap"
               >
                 {copied ? "Скопировано ✓" : "Поделиться"}
               </button>
@@ -371,7 +373,7 @@ export function Editor() {
         </div>
       </div>
 
-      <div className="max-w-[440px] mx-auto pb-28">
+      <div className="paper max-w-[440px] mx-auto pb-28 min-h-screen">
         {/* шапка: правится инлайн (фото — тапом, текст — поверх обложки) */}
         <EditProvider editing>
           <EditableHeader
@@ -395,7 +397,9 @@ export function Editor() {
         />
 
         {/* лента блоков — превью в режиме просмотра, правка через тап-выбор */}
-        <div className="px-4 space-y-4">
+        <Divider />
+
+        <div className="px-5 space-y-11">
           {blocks.map((block, i) => (
             <BlockSelectWrap
               key={i}
@@ -403,7 +407,7 @@ export function Editor() {
               onSelect={() => setSelected(i)}
               onOpen={() => setSheet({ kind: "block", index: i })}
             >
-              <BlockRenderer block={block} doors={profile.doors} />
+              <BlockRenderer block={block} doors={profile.doors} owner={ownerName(profile)} />
             </BlockSelectWrap>
           ))}
         </div>
@@ -431,7 +435,7 @@ export function Editor() {
           ) : (
             <button
               onClick={() => setSheet({ kind: "library" })}
-              className="w-full bg-moss text-white py-4 rounded-2xl font-semibold text-[16px] shadow-lg shadow-moss/30 hover:bg-mossd transition"
+              className="w-full bg-moss text-btn-ink py-4 rounded-2xl font-semibold text-[16px] shadow-lg shadow-moss/30 hover:bg-mossd transition"
             >
               + Добавить блок
             </button>
@@ -470,7 +474,7 @@ export function Editor() {
         footer={
           <button
             onClick={() => setSheet(null)}
-            className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px]"
+            className="w-full bg-moss text-btn-ink py-3.5 rounded-xl font-semibold text-[15px]"
           >
             Готово
           </button>
@@ -490,7 +494,7 @@ export function Editor() {
         onClose={() => setSheet(null)}
         title="Оформление"
         footer={
-          <button onClick={() => setSheet(null)} className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px]">
+          <button onClick={() => setSheet(null)} className="w-full bg-moss text-btn-ink py-3.5 rounded-xl font-semibold text-[15px]">
             Готово
           </button>
         }
@@ -507,7 +511,7 @@ export function Editor() {
         onClose={() => setSheet(null)}
         title="Стикер"
         footer={
-          <button onClick={() => setSheet(null)} className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px]">
+          <button onClick={() => setSheet(null)} className="w-full bg-moss text-btn-ink py-3.5 rounded-xl font-semibold text-[15px]">
             Готово
           </button>
         }
@@ -521,7 +525,7 @@ export function Editor() {
         onClose={() => setSheet(null)}
         title="Кнопки и ссылки"
         footer={
-          <button onClick={() => setSheet(null)} className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px]">
+          <button onClick={() => setSheet(null)} className="w-full bg-moss text-btn-ink py-3.5 rounded-xl font-semibold text-[15px]">
             Готово
           </button>
         }
@@ -566,7 +570,7 @@ function BlockSelectWrap({
       {/* блок в режиме просмотра; тап всплывает к обёртке и выделяет блок */}
       {children}
       {selected && (
-        <span className="absolute -top-2.5 left-3 z-10 bg-moss text-white text-[11px] font-medium px-2 py-0.5 rounded-full shadow">
+        <span className="absolute -top-2.5 left-3 z-10 bg-moss text-btn-ink text-[11px] font-medium px-2 py-0.5 rounded-full shadow">
           нажми, чтобы изменить
         </span>
       )}
@@ -600,7 +604,7 @@ function BlockActionBar({
       <BarBtn onClick={onDown} disabled={last} aria="Вниз"><ArrowDownIcon className="w-4.5 h-4.5" /></BarBtn>
       <button
         onClick={onEdit}
-        className="grow mx-0.5 bg-moss text-white py-2.5 rounded-xl font-semibold text-[15px] hover:bg-mossd transition flex items-center justify-center gap-2"
+        className="grow mx-0.5 bg-moss text-btn-ink py-2.5 rounded-xl font-semibold text-[15px] hover:bg-mossd transition flex items-center justify-center gap-2"
       >
         <PencilIcon className="w-4 h-4" /> Редактировать
       </button>
@@ -731,7 +735,7 @@ function LoginScreen({ onAuth }: { onAuth: (mode: AuthMode, form: AuthForm) => P
         <button
           type="submit"
           disabled={busy}
-          className="w-full bg-moss text-white py-3.5 rounded-xl font-semibold text-[15px] disabled:opacity-50 hover:bg-mossd transition"
+          className="w-full bg-moss text-btn-ink py-3.5 rounded-xl font-semibold text-[15px] disabled:opacity-50 hover:bg-mossd transition"
         >
           {busy ? "Секунду…" : mode === "register" ? "Создать страницу" : "Войти"}
         </button>

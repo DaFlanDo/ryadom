@@ -5,6 +5,7 @@ import type { OnboardingAnswers } from "@/lib/onboarding";
 import { buildDraftProfile } from "@/lib/onboarding";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { BlockRenderer } from "@/components/blocks";
+import { ThemeScope } from "@/components/ThemeScope";
 
 // Живой фрагмент настоящей страницы: тот же ProfileHeader/BlockRenderer,
 // что и в готовом профиле, только в режиме просмотра и без интерактива.
@@ -41,14 +42,15 @@ export function OnboardingPreview({
     if (!el) return;
     // 112 ≈ верх аватара при обложке h-44 (176px − выступ 56px − небольшой запас)
     const top =
-      focus === "reveal" ? 0 : focus === "topics" || focus === "price" ? el.scrollHeight : 112;
+      focus === "reveal" ? 0 : focus === "topics" || focus === "price" ? el.scrollHeight : focus === "note" ? 330 : 112;
     el.scrollTo({ top, behavior: "smooth" });
-  }, [focus, answers.topics.length, answers.price]);
+  }, [focus, answers.topics.length, answers.price, answers.note]);
 
   return (
     <div className={`px-5 ${compact ? "pt-2" : "pt-3"}`}>
-      <div
-        className={`relative mx-auto max-w-[300px] rounded-[1.6rem] border border-ink/[0.06] bg-card overflow-hidden shadow-cozy-lg ${
+      <ThemeScope
+        theme={answers.theme}
+        className={`paper relative mx-auto max-w-[300px] rounded-[1.6rem] border border-ink/[0.06] overflow-hidden shadow-cozy-lg ${
           glow ? "breathe" : ""
         }`}
       >
@@ -71,8 +73,8 @@ export function OnboardingPreview({
         </div>
 
         {/* маска снизу — «страница продолжается» */}
-        <div className="pointer-events-none absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-card via-card/80 to-transparent" />
-      </div>
+        <div className="pointer-events-none absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-bg via-bg/80 to-transparent" />
+      </ThemeScope>
 
       {!compact && (
         <p className="text-center text-[11px] text-sage mt-2">

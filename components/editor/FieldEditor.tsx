@@ -138,7 +138,7 @@ export function FieldEditor({
                   onClick={() => onChange(o.value)}
                   className={`px-3.5 py-2 rounded-xl text-[14px] font-medium border transition ${
                     current === o.value
-                      ? "bg-moss text-white border-moss"
+                      ? "bg-moss text-btn-ink border-moss"
                       : "bg-card text-ink border-ink/10"
                   }`}
                 >

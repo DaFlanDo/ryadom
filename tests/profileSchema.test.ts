@@ -34,13 +34,30 @@ describe("схема профиля", () => {
   });
 
   it("стикеры и тема: только из своего списка", () => {
-    const ok = { ...starter(), theme: "dusk", header: { ...starter().header, sticker: { id: "herb", corner: "br" } } };
+    const ok = { ...starter(), theme: "evening", header: { ...starter().header, sticker: { id: "herb", corner: "br" } } };
     expect(parseProfile(ok).ok).toBe(true);
     const badId = { ...ok, header: { ...ok.header, sticker: { id: "../../etc/passwd", corner: "br" } } };
     expect(parseProfile(badId).ok).toBe(false);
     const badCorner = { ...ok, header: { ...ok.header, sticker: { id: "herb", corner: "middle" } } };
     expect(parseProfile(badCorner).ok).toBe(false);
     expect(parseProfile({ ...ok, theme: "neon" }).ok).toBe(false);
+  });
+
+  it("старые темы «Мох», «Глина», «Сумерки» открываются в «Записке»", () => {
+    for (const legacy of ["moss", "clay", "dusk"]) {
+      const parsed = parseProfile({ ...starter(), theme: legacy });
+      expect(parsed.ok && parsed.profile.theme).toBe("note");
+    }
+  });
+
+  it("онбординг собирает страницу «Записки»: пара слов, запросы, первая встреча, вопросы", () => {
+    const p = starter();
+    expect(p.header.note).toBeTruthy();
+    expect(p.blocks.map((b) => b.type)).toEqual(
+      expect.arrayContaining(["topics", "meeting", "steps", "pricing", "faq", "cta"])
+    );
+    const topics = p.blocks.find((b) => b.type === "topics");
+    expect(topics && "items" in topics && topics.items).toContain("тревога, которая не отпускает");
   });
 
   it("у каждого стикера из списка есть файл", async () => {
