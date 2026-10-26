@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Profile } from "@/components/Profile";
 import { getProfileByHandle } from "@/lib/profiles";
-import { isReservedHandle } from "@/lib/handles";
+import { isReservedHandle, isSandboxHandle } from "@/lib/handles";
 
 // Профиль может меняться в редакторе — не кэшируем агрессивно.
 export const dynamic = "force-dynamic";
@@ -33,6 +33,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
+    // Демо-песочницы живут сутки — поисковикам их показывать незачем
+    ...(isSandboxHandle(handle) && { robots: { index: false, follow: false } }),
     openGraph: { title, description, type: "profile" },
     twitter: { card: "summary_large_image", title, description },
   };

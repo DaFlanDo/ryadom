@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import type { Block, Highlight, Profile, ProfileHeader as Header, Sticker, ThemeId } from "@/lib/types";
 import { emptyProfile } from "@/lib/profile";
-import { handleError } from "@/lib/handles";
+import { handleError, isSandboxHandle } from "@/lib/handles";
 import { BLOCK_LIBRARY, createBlock } from "@/lib/blockSchema";
 import { BlockRenderer } from "@/components/blocks";
 import {
@@ -290,6 +290,20 @@ export function Editor() {
 
   return (
     <ThemeScope theme={profile.theme} className="min-h-screen">
+      {myHandle && isSandboxHandle(myHandle) && (
+        <div className="bg-moss text-btn-ink text-[13px] leading-snug">
+          <div className="max-w-[460px] mx-auto px-4 py-2">
+            Это демо: правьте что угодно, страница{" "}
+            <a href={`/${myHandle}`} target="_blank" className="underline underline-offset-2">
+              /{myHandle}
+            </a>{" "}
+            удалится через сутки.{" "}
+            <button onClick={logout} className="underline underline-offset-2 font-semibold">
+              Создать свою
+            </button>
+          </div>
+        </div>
+      )}
       {/* верхняя панель */}
       <div className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-ink/5">
         <div className="max-w-[460px] mx-auto px-4 h-14 flex items-center justify-between">
@@ -739,6 +753,15 @@ function LoginScreen({ onAuth }: { onAuth: (mode: AuthMode, form: AuthForm) => P
         >
           {busy ? "Секунду…" : mode === "register" ? "Создать страницу" : "Войти"}
         </button>
+        {/* Обычная ссылка, не <Link>: /try — обработчик, создающий песочницу, его нельзя
+            дёргать клиентским переходом или prefetch'ем */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a
+          href="/try"
+          className="block text-center text-[14px] text-sub hover:text-ink underline underline-offset-2 pt-2"
+        >
+          Сначала попробовать без регистрации
+        </a>
       </form>
     </div>
   );

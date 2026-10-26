@@ -8,8 +8,14 @@
 // латиница/цифры/дефис/подчёркивание, 2–32 символа
 export const HANDLE_RE = /^[a-z0-9_-]{2,32}$/;
 
+// Адреса демо-песочниц (lib/demo.ts): через сутки удаляются, поэтому занять
+// такой адрес при регистрации нельзя
+export const SANDBOX_PREFIX = "try-";
+
+export const isSandboxHandle = (handle: string) => handle.startsWith(SANDBOX_PREFIX);
+
 const RESERVED = new Set([
-  "u", "edit", "api", "app", "www", "login", "logout", "signin", "signout",
+  "u", "edit", "api", "app", "www", "login", "logout", "signin", "signout", "try",
   "admin", "settings", "profile", "new", "about", "help", "support",
   "terms", "privacy", "static", "public", "favicon", "robots", "sitemap",
 ]);
@@ -25,6 +31,9 @@ export function handleError(handle: string): string | null {
   }
   if (isReservedHandle(handle)) {
     return "Этот адрес занят системой, выберите другой";
+  }
+  if (isSandboxHandle(handle)) {
+    return "Адреса на try- заняты демо-режимом, выберите другой";
   }
   return null;
 }

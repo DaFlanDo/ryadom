@@ -7,7 +7,7 @@
 import "server-only";
 import type { Profile } from "@/lib/types";
 import { parseProfile } from "@/lib/profileSchema";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { supabaseAdmin, PROFILE_BUCKET } from "@/lib/supabase/server";
 
 // Пустой профиль ({}) считаем «ещё не заполнен» → фронт покажет онбординг.
 function isEmptyProfile(p: unknown): boolean {
@@ -95,4 +95,40 @@ export async function createAccount(email: string, handle: string, passwordHash:
   if (error?.code === "23505") throw new AccountTakenError("Этот email или адрес уже занят");
   if (error) throw error;
   return data.id as string;
+}
+
+// ── Демо-песочницы (lib/demo.ts): строки без email и пароля, адрес с префиксом ──
+
+export async function createSandboxAccount(handle: string, profile: Profile): Promise<string> {
+  const { data, error } = await supabaseAdmin()
+    .from("psychologists")
+    .insert({ handle, profile })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id as string;
+}
+
+// Удаляет песочницы старше cutoff вместе с их фото. Возвращает число удалённых.
+export async function deleteSandboxesBefore(prefix: string, cutoff: Date): Promise<number> {
+  const db = supabaseAdmin();
+  const { data, error } = await db
+    .from("psychologists")
+    .select("id")
+    .like("handle", `${prefix}%`)
+    .is("email", null)
+    .lt("created_at", cutoff.toISOString());
+  if (error) throw error;
+  if (!data.length) return 0;
+
+  const ids = data.map((r) => r.id as string);
+  for (const id of ids) {
+    const { data: files } = await db.storage.from(PROFILE_BUCKET).list(id);
+    if (files?.length) {
+      await db.storage.from(PROFILE_BUCKET).remove(files.map((f) => `${id}/${f.name}`));
+    }
+  }
+  const { error: delError } = await db.from("psychologists").delete().in("id", ids);
+  if (delError) throw delError;
+  return ids.length;
 }

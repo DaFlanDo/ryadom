@@ -103,6 +103,14 @@ export default function Home() {
           </Link>
         </div>
         <p className="hand hand-md text-sub text-center mt-2.5">бесплатно · минут пять, прямо с телефона</p>
+        {/* Обычная ссылка, не <Link>: /try — обработчик, создающий песочницу, его нельзя
+            дёргать клиентским переходом или prefetch'ем */}
+        <p className="text-center mt-1">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/try" className="text-[14px] text-sub hover:text-ink underline underline-offset-2">
+            или открыть редактор без регистрации →
+          </a>
+        </p>
 
         <Divider />
 
