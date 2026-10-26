@@ -33,7 +33,7 @@ export default function Home() {
       <main className="paper relative max-w-[440px] mx-auto min-h-screen sm:min-h-0 pb-12 overflow-x-clip sm:rounded-[2.2rem] sm:shadow-[0_30px_80px_-20px_rgba(20,15,10,0.45)]">
         <div className="px-6 pt-6 flex items-center justify-between">
           <span className="font-serif text-[26px] text-ink">Ryadom</span>
-          <Link href="/edit" className="hand hand-lg text-sub hover:text-ink">
+          <Link href="/edit?mode=login" className="hand hand-lg text-sub hover:text-ink">
             войти
           </Link>
         </div>

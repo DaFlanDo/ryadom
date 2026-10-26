@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import type { Block, Highlight, Profile, ProfileHeader as Header, Sticker, ThemeId } from "@/lib/types";
 import { emptyProfile } from "@/lib/profile";
-import { handleError, isSandboxHandle } from "@/lib/handles";
+import { isSandboxHandle } from "@/lib/handles";
 import { BLOCK_LIBRARY, createBlock } from "@/lib/blockSchema";
 import { BlockRenderer } from "@/components/blocks";
 import {
@@ -23,6 +23,7 @@ import { ownerName } from "@/components/Profile";
 import { DEFAULT_THEME } from "@/lib/themes";
 import { EditProvider } from "@/components/blocks/EditContext";
 import { Onboarding } from "@/components/onboarding/Onboarding";
+import { LoginScreen, type AuthForm, type AuthMode } from "./LoginScreen";
 import { Sheet } from "./Sheet";
 import { BlockForm } from "./BlockForm";
 import { EditableHeader } from "./EditableHeader";
@@ -653,124 +654,5 @@ function BarBtn({
     >
       {children}
     </button>
-  );
-}
-
-// ── Экран входа (временный dev-логин по handle; позже — Telegram) ──
-type AuthMode = "login" | "register";
-type AuthForm = { email: string; password: string; handle?: string };
-
-const authInput =
-  "w-full bg-card border border-ink/15 rounded-xl px-3 py-3 text-[16px] text-ink outline-none focus:border-moss/60 transition";
-
-function LoginScreen({ onAuth }: { onAuth: (mode: AuthMode, form: AuthForm) => Promise<void> }) {
-  const [mode, setMode] = useState<AuthMode>("register");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [handle, setHandle] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const h = handle.trim().toLowerCase();
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mode === "register") {
-      const invalid = handleError(h);
-      if (invalid) return setError(invalid);
-      if (password.length < 8) return setError("Пароль — не короче 8 символов");
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      await onAuth(mode, mode === "register" ? { email, password, handle: h } : { email, password });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось войти");
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-6">
-      <form onSubmit={submit} className="w-full max-w-[360px] space-y-3">
-        <h1 className="font-serif text-2xl text-ink">
-          {mode === "register" ? "Своя страница за пару минут" : "Вход в конструктор"}
-        </h1>
-        {/* Обычная ссылка, не <Link>: /try — обработчик, создающий песочницу, его нельзя
-            дёргать клиентским переходом или prefetch'ем */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a
-          href="/try"
-          className="block w-full text-center border-2 border-moss text-moss py-3.5 rounded-xl font-semibold text-[15px] hover:bg-moss/10 transition"
-        >
-          Попробовать без регистрации
-        </a>
-        <p className="text-[12px] text-sub text-center -mt-1">
-          Откроется готовая страница-пример — правьте её как свою, через сутки она удалится
-        </p>
-        <div className="flex items-center gap-3 py-1 text-[12px] text-sub">
-          <span className="h-px flex-1 bg-ink/10" />
-          или своя страница
-          <span className="h-px flex-1 bg-ink/10" />
-        </div>
-        <div className="flex gap-1 bg-soft rounded-xl p-1 text-[14px] font-medium">
-          {(["register", "login"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => {
-                setMode(m);
-                setError(null);
-              }}
-              className={`flex-1 py-2 rounded-lg transition ${mode === m ? "bg-card text-ink shadow-sm" : "text-sub"}`}
-            >
-              {m === "register" ? "Регистрация" : "Вход"}
-            </button>
-          ))}
-        </div>
-        <input
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className={authInput}
-        />
-        <input
-          type="password"
-          required
-          autoComplete={mode === "register" ? "new-password" : "current-password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={mode === "register" ? "Пароль, от 8 символов" : "Пароль"}
-          className={authInput}
-        />
-        {mode === "register" && (
-          <div>
-            <div className="flex items-center bg-card border border-ink/15 rounded-xl px-3 focus-within:border-moss/60 transition">
-              <span className="text-sub text-[15px] select-none">ryadom.app/</span>
-              <input
-                value={handle}
-                onChange={(e) => setHandle(e.target.value)}
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                placeholder="kate"
-                className="flex-1 bg-transparent py-3 px-1 text-[16px] text-ink outline-none"
-              />
-            </div>
-            <p className="text-[12px] text-sub mt-1.5">Адрес вашей страницы, его вы будете отправлять клиентам</p>
-          </div>
-        )}
-        {error && <p className="text-[12px] text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full bg-moss text-btn-ink py-3.5 rounded-xl font-semibold text-[15px] disabled:opacity-50 hover:bg-mossd transition"
-        >
-          {busy ? "Секунду…" : mode === "register" ? "Создать страницу" : "Войти"}
-        </button>
-      </form>
-    </div>
   );
 }
