@@ -695,6 +695,23 @@ function LoginScreen({ onAuth }: { onAuth: (mode: AuthMode, form: AuthForm) => P
         <h1 className="font-serif text-2xl text-ink">
           {mode === "register" ? "Своя страница за пару минут" : "Вход в конструктор"}
         </h1>
+        {/* Обычная ссылка, не <Link>: /try — обработчик, создающий песочницу, его нельзя
+            дёргать клиентским переходом или prefetch'ем */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a
+          href="/try"
+          className="block w-full text-center border-2 border-moss text-moss py-3.5 rounded-xl font-semibold text-[15px] hover:bg-moss/10 transition"
+        >
+          Попробовать без регистрации
+        </a>
+        <p className="text-[12px] text-sub text-center -mt-1">
+          Откроется готовая страница-пример — правьте её как свою, через сутки она удалится
+        </p>
+        <div className="flex items-center gap-3 py-1 text-[12px] text-sub">
+          <span className="h-px flex-1 bg-ink/10" />
+          или своя страница
+          <span className="h-px flex-1 bg-ink/10" />
+        </div>
         <div className="flex gap-1 bg-soft rounded-xl p-1 text-[14px] font-medium">
           {(["register", "login"] as const).map((m) => (
             <button
@@ -753,15 +770,6 @@ function LoginScreen({ onAuth }: { onAuth: (mode: AuthMode, form: AuthForm) => P
         >
           {busy ? "Секунду…" : mode === "register" ? "Создать страницу" : "Войти"}
         </button>
-        {/* Обычная ссылка, не <Link>: /try — обработчик, создающий песочницу, его нельзя
-            дёргать клиентским переходом или prefetch'ем */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a
-          href="/try"
-          className="block text-center text-[14px] text-sub hover:text-ink underline underline-offset-2 pt-2"
-        >
-          Сначала попробовать без регистрации
-        </a>
       </form>
     </div>
   );

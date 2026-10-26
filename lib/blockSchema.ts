@@ -54,17 +54,6 @@ export const BLOCK_LIBRARY: {
 // ── Схемы полей по типу блока ──
 export const BLOCK_SCHEMAS: Record<BlockType, Field[]> = {
   statement: [
-    {
-      key: "color",
-      label: "Цвет фона",
-      kind: "select",
-      options: [
-        { value: "moss", label: "Зелёный" },
-        { value: "deep", label: "Тёмный" },
-        { value: "soft", label: "Светло-зелёный" },
-        { value: "card", label: "Белый" },
-      ],
-    },
     { key: "text", label: "Текст", kind: "textarea", ph: "Например: «Терапия должна делать тебя свободнее, а не привязывать к терапевту.»" },
     { key: "caption", label: "Подпись (необязательно)", kind: "text", ph: "— мой принцип в работе" },
   ],
@@ -212,7 +201,7 @@ export const BLOCK_SCHEMAS: Record<BlockType, Field[]> = {
 export function createBlock(type: BlockType): Block {
   switch (type) {
     case "statement":
-      return { type, color: "moss", text: "Новая цитата или заявление", caption: "" };
+      return { type, text: "Новая цитата или заявление", caption: "" };
     case "text":
       return { type, title: "Заголовок", body: "Текст блока…" };
     case "grid":

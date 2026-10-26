@@ -15,6 +15,7 @@ export type ThemeId = "note" | "notebook" | "herbarium" | "evening";
 
 export type StatementBlock = Decor & {
   type: "statement";
+  /** Цвет подложки из старого дизайна: в «Записке» цитата без подложки, поле не используется */
   color?: "moss" | "deep" | "soft" | "card";
   text: string;
   caption?: string;
